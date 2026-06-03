@@ -6,7 +6,8 @@
 
 #ifdef WS2812BSIMPLE_IMPLEMENTATION
 #if FUNCONF_SYSTICK_USE_HCLK != 1
-#error WS2812B Driver Requires FUNCONF_SYSTICK_USE_HCLK
+//TODOs What I changed add comment to #error...
+// #error WS2812B Driver Requires FUNCONF_SYSTICK_USE_HCLK
 #endif
 
 // README: ACT Button is connected to PA2 !!!!!

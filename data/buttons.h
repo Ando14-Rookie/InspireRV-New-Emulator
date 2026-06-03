@@ -180,6 +180,9 @@ static const int buttons[NUM_BUTTONS] = {BUTTON_0, BUTTON_1, BUTTON_2, BUTTON_3,
 #define BUTTON_63 20
 
 /// @brief Array of buttons corresponding to the ADC values, for linear searching
+//TODOs: What I changed NUM_BUTTONS hard-coded
+const int NUM_BUTTONS = 64;
+
 static const int buttons[NUM_BUTTONS] = {BUTTON_0, BUTTON_1, BUTTON_2, BUTTON_3, BUTTON_4,
     BUTTON_5, BUTTON_6, BUTTON_7, BUTTON_8, BUTTON_9, BUTTON_10, BUTTON_11, BUTTON_12,
     BUTTON_13, BUTTON_14, BUTTON_15, BUTTON_16, BUTTON_17, BUTTON_18, BUTTON_19,
