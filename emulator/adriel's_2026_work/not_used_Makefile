@@ -1,0 +1,15 @@
+TARGET:= test
+CC = gcc #choose compiler
+CFLAGS = -Wall -Wextra -g #stores compile options.
+ #Makefile for New Emulator
+ 
+ #Notes \
+  targets (file names, separated by spaces): prerequisites (same as dependencies)\
+ 	command (a series of steps typically used to make the target(s))\
+ 	command\
+  	command\
+ #
+
+test: test.c
+	$(CC) $(CFLAGS) test.c -o test
+
