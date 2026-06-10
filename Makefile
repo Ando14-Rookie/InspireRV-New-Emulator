@@ -2,6 +2,7 @@
 default: all-emulator
 
 all-emulator:
+	$(MAKE) emulator -C switch_page
 	$(MAKE) emulator -C rv-asm
 	$(MAKE) emulator -C tic-tac-toe
 	$(MAKE) emulator -C paint-cursor
@@ -18,6 +19,7 @@ all-riscv:
 	$(MAKE) -C testing
 
 clean:
+	$(MAKE) -C switch_page clean
 	$(MAKE) -C rv-asm clean
 	$(MAKE) -C tic-tac-toe clean
 	$(MAKE) -C paint-cursor clean

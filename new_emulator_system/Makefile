@@ -6,7 +6,7 @@ VPATH    = ../emulator/adriel's_2026_work # tells make where to find source file
 
 # ─── Files ──────────────────────────────────────────────────────────
 TARGET  = switch_page.exe # name of the final executable
-OBJS    = switch_page.o system_window.o # list of object files generated from source files
+OBJS    = switch_page.o system_window.o extra_function.o # list of object files generated from source files
 
 # ─── Default rule: build the executable ─────────────────────────────
 all: $(TARGET)
@@ -18,6 +18,10 @@ $(TARGET): $(OBJS) # link the object files into the final executable
 # $@	The target (the file being built)	
 # $<	The first prerequisite (the input file)	
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+# 3. The test target depending directly on the compiled program
+emulator: $(TARGET)
+	./$(TARGET) --run-tests
 
 clean: # custom clean rule to remove additional files generated during the build process
 	del /f /q $(OBJS) $(TARGET) 2>NUL

@@ -1,11 +1,13 @@
-# InspireMatrix + CH32V003
+# InspireRV + CH32V003
 
 This repository contains various projects and utilities for
 working with the CH32V003 microcontroller.
 
-Older hardware (InspireMatrix):
+## New hardware (InspireRV):
 
-![InspireMatrix](inspire_matrix.jpeg)
+Front View|Back View
+:--------:|--------:
+![alt text](image.png)|![alt text](image-1.png)
 
 ## Project Structure
 
@@ -73,6 +75,7 @@ Older hardware (InspireMatrix):
   * Support development of basic embedded system software on Windows/MacOS without requiring
   physical hardware.
   * Aims to achieve function compatibility with the `ch32v003fun` library.
+  * `adriel's_2026_work`: Handles key press event for WindowsOS, MacOs and InspireRV. It also contains essential functions needed in `new_emulator_system`
 
 * `i2c-comm`
   * Communication between two boards using I2C protocol. The code contains a master and a slave.
@@ -84,14 +87,20 @@ Older hardware (InspireMatrix):
   * Animations of numbers moving from right to left, bottom to top. Uses math instead of hard coding.
   Demonstrates the use of `fonts.h`.
 
+* `new_emulator_system`
+  * **What is Emulator?**
+    * A piece of software (or hardware) that allows one device to act exactly like another.
+  * Make emulator in VS code's terminal that re presents the 8x8 LED matrix in InspireRV.
+  * All logic/code needed to create the emulator is contained here.
+
+* `paint`
+  * Paint on `InspireMatrix`.
+
 * `paint-cursor`
   * Draw images on `InspireMatrix` with direction buttons and matrix buttons
   * Connection:
     * PD2: SW (Analog to Digital PIN)
     * PC6: IN (WS2812B Data PIN)
-
-* `paint`
-  * Paint on `InspireMatrix`.
 
 * `rv-asm`
   * Coding RISC-V Compressed instructions on a board with buttons, and showing the result on the matrix.
@@ -187,7 +196,7 @@ Older hardware (InspireMatrix):
 
 ```
 
-## Compilation
+## How to compile 
 
 Two options are available for compilation:
 
@@ -198,6 +207,30 @@ Two options are available for compilation:
 * `make emulator`
   * Compile an executable using `GCC` which runs natively on your operating system, simulating behaviour on real hardware.
 
+## How to flash firmware to InspireRV
+
+* Step 1:
+
+  ![alt text](image-2.png)
+  * dd
+  
+* Step 2:
+
+  ![alt text](image-3.png)
+  * dd
+
+* Step 3:
+
+  Side Left View|Side Right View
+  :--------:|--------:
+  ![alt text](image-5.png)|![alt text](image-6.png)
+  * dd
+
+* Step 4:   
+
+
+  * dd 
+
 ## Credits
 
 Great thanks to these projects (LICENSE included):
@@ -207,6 +240,7 @@ Great thanks to these projects (LICENSE included):
 * <https://github.com/mnurzia/rv>
 * <https://github.com/michaeljclark/riscv-disassembler>
 * <https://github.com/hexeguitar/ch32v003fun_libs>
+* <https://github.com/eric15342335/inspirematrix-buttons/tree/main>
 
 ## Check out our other projects as well
 

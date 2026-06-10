@@ -1,23 +1,37 @@
 /// @brief Button calibration values from ADC_read()
 #pragma once
 
-#include "funconfig.h"
-
 // Joypad calibration values
+// Measured ADC targets for those positions
 #define JOY_N 197  // joypad UP
 #define JOY_NE 259 // joypad UP + RIGHT
+#define JOY_NW 567 // JOYPAD UP + LEFT
+
 #define JOY_E 90   // joypad RIGHT
 #define JOY_SE 388 // joypad DOWN + RIGHT
+
 #define JOY_S 346  // joypad DOWN
 #define JOY_SW 616 // joypad DOWN + LEFT
 #define JOY_W 511  // joypad LEFT
-#define JOY_NW 567 // JOYPAD UP + LEFT
+
 #define JOY_DEV 20 // deviation
 
-#ifndef NUM_BUTTONS
+// #define NUM_BUTTONS 64
+#define MAX_BUTTONS 64
+static const int buttons[MAX_BUTTONS];
+
+#ifndef NUM_BUTTONS //If not define yet, define it as number of LEDs for now, 
 #define NUM_BUTTONS NUM_LEDS
 #endif
 
+//Define total of number of LEDs
+#define NUM_LEDS MAX_BUTTONS
+
+//Define the total of buttons horizontal and vertical
+#define HORIZONTAL_BUTTONS 8 
+#define VERTICAL_BUTTONS 8 
+
+//Compile if specific macro has been defined
 #ifdef INTERNAL_INSPIRE_MATRIX
 
 #define BUTTON_NONE 40
@@ -181,9 +195,9 @@ static const int buttons[NUM_BUTTONS] = {BUTTON_0, BUTTON_1, BUTTON_2, BUTTON_3,
 
 /// @brief Array of buttons corresponding to the ADC values, for linear searching
 //TODOs: What I changed NUM_BUTTONS hard-coded
-const int NUM_BUTTONS = 64;
 
-static const int buttons[NUM_BUTTONS] = {BUTTON_0, BUTTON_1, BUTTON_2, BUTTON_3, BUTTON_4,
+
+static const int buttons[MAX_BUTTONS] = {BUTTON_0, BUTTON_1, BUTTON_2, BUTTON_3, BUTTON_4,
     BUTTON_5, BUTTON_6, BUTTON_7, BUTTON_8, BUTTON_9, BUTTON_10, BUTTON_11, BUTTON_12,
     BUTTON_13, BUTTON_14, BUTTON_15, BUTTON_16, BUTTON_17, BUTTON_18, BUTTON_19,
     BUTTON_20, BUTTON_21, BUTTON_22, BUTTON_23, BUTTON_24, BUTTON_25, BUTTON_26,

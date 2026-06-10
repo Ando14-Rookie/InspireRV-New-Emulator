@@ -32,13 +32,17 @@
 #define _7_Key 0x37
 #define _8_Key 0x38
 #define _9_Key 0x39
-
-//thread: to handle multiple execution asynchronously 
-pthread_t thread;
-
 #define MAX_KEYS 6
-WORD pressedKeys[MAX_KEYS];
-int pressedKeyCount_;
+
+// Keep the actual definitions in exactly one .c file so only defined ONCE
+//thread: to handle multiple execution asynchronously 
+
+//extern: to tell compiler variable will be instantsiated somewhere later
+extern pthread_t thread;
+extern WORD pressedKeys[MAX_KEYS];
+extern int pressedKeyCount_;
+extern char pageState[];
+extern pthread_mutex_t keyMutex;
 
 // Change from MacOS into Windows Setup
 // WORD: 16-bit unsigned integer

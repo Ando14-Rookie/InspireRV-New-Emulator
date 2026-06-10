@@ -1,4 +1,5 @@
 #include "system_window.h"
+#include "extra_function.h"
 
 // Only for MacOS
 
@@ -26,6 +27,7 @@ int pressedKeyCount = 0;
 pthread_mutex_t keyMutex = PTHREAD_MUTEX_INITIALIZER;
 // thread: unique identifier for the thread we will create to listen to keyboard events
 pthread_t thread;
+char pageState[] = "PAINTING_SPACE";  // actual definition lives here
 
 // Adds a key code to a list of currently pressed keys (ONLY WHEN 1st Time)
 void addKey(WORD keyCode) {
@@ -93,16 +95,19 @@ LRESULT CALLBACK WindowProc(int nCode, WPARAM wParam, LPARAM lParam) {
 
     // wParam: the identifier of the keyboard message (e.g., WM_KEYDOWN, WM_KEYUP, etc)
     switch (wParam) {
+        // Key is pressed (down)
         case WM_KEYDOWN:
-            // Key is pressed (down)
             addKey(key);
-            printf("Key code %u pressed\n", (unsigned int)key);
+            // Handle the painting and coding page for each button here
+            handleButtonFunction(pageState, key);
+            // Print the key code for debugging purposes
+            // printf("Key code %u pressed\n", (unsigned int)key);
             break;
 
+        // Key is released (up)
         case WM_KEYUP:
-            // Key is released (up)
             removeKey(key);
-            printf("Key code %u released\n", (unsigned int)key);
+            // printf("Key code %u released\n", (unsigned int)key);
             break;
     }
     pthread_mutex_unlock(&keyMutex);
@@ -149,13 +154,13 @@ void * eventTapThread(void * arg) {
 // Initialize the thread to listen to keyboard events
 void pthread_init() { pthread_create(&thread, NULL, eventTapThread, NULL); }
 
-int main(void) {
-    pthread_init();
+// int main(void) {
+//     pthread_init();
 
-    while (1) {
-        // Prevent high usage of CPU by sleeping for a short duration before check again
-        Sleep(100);
-    }
+//     while (1) {
+//         // Prevent high usage of CPU by sleeping for a short duration before check again
+//         Sleep(100);
+//     }
 
-    return 0;
-}
+//     return 0;
+// }

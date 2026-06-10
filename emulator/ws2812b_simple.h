@@ -7,6 +7,7 @@
 
 #define BORDER_X 2
 
+// An emulator version of the real hardware LED driver
 void WS2812BSimpleSend(GPIO_TypeDef * port, int pin, uint8_t * data, int len_in_bytes) {
     (void)port;
     (void)pin;
@@ -16,18 +17,18 @@ void WS2812BSimpleSend(GPIO_TypeDef * port, int pin, uint8_t * data, int len_in_
     }
     printf("\033[2J\033[H");
     printf("\\x");
-    for (uint8_t i = horizontalButtons; i > 0; i--) {
+    for (uint8_t i = HORIZONTAL_BUTTONS; i > 0; i--) {
         printf("%d", (i - 1) % 10);
     }
     printf(" \ny");
-    for (uint8_t i = 0; i < horizontalButtons + BORDER_X; i++) {
+    for (uint8_t i = 0; i < HORIZONTAL_BUTTONS + BORDER_X; i++) {
         printf("-");
     }
     printf("\n");
-    for (uint8_t y = verticalButtons; y > 0; y--) {
+    for (uint8_t y = VERTICAL_BUTTONS; y > 0; y--) {
         printf("%d|", (y - 1) % 10);
-        for (uint8_t x = horizontalButtons; x > 0; x--) {
-            uint8_t led = (y - 1) * horizontalButtons + (x - 1);
+        for (uint8_t x = HORIZONTAL_BUTTONS; x > 0; x--) {
+            uint8_t led = (y - 1) * HORIZONTAL_BUTTONS + (x - 1);
             printf("\e[38;2;%d;%d;%dm\u2588\x1b[0m", data[led * 3], data[led * 3 + 1],
                 data[led * 3 + 2]);
             // printf("r:%d g:%d b:%d ", data[led * 3], data[led * 3 + 1], data[led * 3 +
@@ -36,7 +37,7 @@ void WS2812BSimpleSend(GPIO_TypeDef * port, int pin, uint8_t * data, int len_in_
         printf("|\n");
     }
     printf(" ");
-    for (uint8_t i = 0; i < horizontalButtons + BORDER_X; i++) {
+    for (uint8_t i = 0; i < HORIZONTAL_BUTTONS + BORDER_X; i++) {
         printf("-");
     }
     printf("\n");

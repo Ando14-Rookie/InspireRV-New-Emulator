@@ -24,6 +24,7 @@ int main(void) {
     WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
     while (1) {
         clear();
+        //TODO: to be updated
         int act_pressed = JOY_act_pressed();
         // move current position
         if (JOY_up_pressed()) {

@@ -1,35 +1,20 @@
-#pragma once
-
+#pragma once // ensures a header file is included only once during a single compilation
+#ifdef _WIN32
 #include "ws2812b_simple.h"
+#include "buttons.h"
 
+#include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
-
-#ifdef _WIN32
+#include <windows.h>
 #define NOMINMAX 1          // Prevent Windows.h from defining min and max macros
 #define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
-#include <windows.h>
-void SystemInit(void) {
-    // Set the console to UTF-8 mode
-    SetConsoleOutputCP(65001);
-    // Get the current console mode
-    DWORD consoleMode;
-    GetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), &consoleMode);
-    // Enable virtual terminal processing
-    consoleMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-    SetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), consoleMode);
-}
 #define Delay_Ms(milliseconds) Sleep(milliseconds)
 #define Delay_Us(microseconds) Sleep((microseconds) / 1000)
-
-static inline bool is_key_pressed(char capitalkey) {
-    SHORT result =
-        GetAsyncKeyState((int)capitalkey); // windows.h requires capital letters
-    return (result & 0x8000) != 0;
-}
-
 // Replaces everry instance of JOY_###_pressed() with the corresponding key press
 //  Code Space & Paint Space: load
+// #define JOY_act_pressed()                                                                \
+//     (JOY_check_button(multiple_ADC_reads(ADC_read_smallboard, 5)) == JOY_ACT)
 #define JOY_first_pressed() is_key_pressed('1')
 // Code Space & Paint Space: brightness control
 #define JOY_second_pressed() !is_key_pressed('2')
@@ -47,6 +32,40 @@ static inline bool is_key_pressed(char capitalkey) {
 #define JOY_eigth_pressed() is_key_pressed('8')
 // Code Space: go to painting space ;Paint Space: clear screen
 #define JOY_ninth_pressed() is_key_pressed('9')
+
+const int horizontalButtons = 8;
+const int verticalButtons = 8;
+
+
+// Prepares the Windows console so terminal output behaves better
+// Configure Window CMD (Console) for detecting live keyboard clicks for a program or game
+void SystemInit(void) {
+    // Set the console to UTF-8 mode
+    SetConsoleOutputCP(65001);
+    // Get the current console mode
+    DWORD consoleMode;
+    // Get the console window that represents the program’s output screen
+    // Read the current settings of that console output.
+    // Finally, this will contain the current console configuration
+    GetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), &consoleMode);
+    // Enable virtual terminal processing: translate them into actual terminal actions (e.g., moving cursor, changing colors, etc.)
+    consoleMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    // Save the updated settings back to the console.
+    SetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), consoleMode);
+}
+
+// static: make function only visible in this file; 
+// inline: suggest compiler to replace function call with actual code to reduce overhead
+static inline bool is_key_pressed(char capitalkey) {
+    // GetAsyncKeyState: current state of that key
+    SHORT result =
+        GetAsyncKeyState((int)capitalkey); // windows.h requires capital letters
+
+    // Check the pressed-down flag; if it is on, return true.
+    return (result & 0x8000) != 0;
+}
+
+//TODO: TO BE CONTINUED
 
 uint16_t ADC_read(void) {
     // If pressed A, B, C, D, wait for second input 0-9 and A-F

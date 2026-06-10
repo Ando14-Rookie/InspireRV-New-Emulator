@@ -4,6 +4,11 @@
 // obtained from i2c_scan(), before shifting by 1 bit
 #define EEPROM_ADDR 0x51
 
+/*File purpose: to store permanent firmware settings, such as 
+joypad calibration values, and to test the i2c read/write functions 
+with 24LC32 eeprom with 32KB capacity (which requires 2 byte register 
+address range)
+*/ 
 int main(void) {
     SystemInit();
     printf("Hello, World!\n");
