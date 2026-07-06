@@ -4,7 +4,7 @@
 #define __CH32V00x_H
 
 #define abs(x) ((x) < 0 ? -(x) : (x))
-#include "funconfig.h"
+// #include "funconfig.h"
 
 /*****************************************************************************
 	CH32V003 BASICS

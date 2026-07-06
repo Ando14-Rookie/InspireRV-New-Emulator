@@ -1,7 +1,8 @@
 #pragma once
 #include "buttons.h"
 #include "ch32v003_GPIO_branchless.h"
-#include "ch32v003fun.h"
+#include "../ch32v003fun/ch32v003fun.h"
+
 #include "funconfig.h"
 
 #ifdef WS2812BSIMPLE_IMPLEMENTATION
@@ -200,14 +201,7 @@ static inline uint8_t JOY_right_pressed(void) {
 
 #endif
 
-uint16_t rnval;
-uint16_t JOY_random(void) {
-    rnval = (rnval >> 0x01) ^ (-(rnval & 0x01) & 0xB400);
-    return rnval;
-}
-
-void JOY_setseed_default(void) { rnval = 0x1234; }
-
-void JOY_setseed(uint16_t seed) { rnval = seed; }
+// 4 same functions has been moved to this path file below
+// #include "../common_function/same_driver.h"
 
 #endif

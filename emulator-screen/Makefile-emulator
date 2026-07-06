@@ -1,0 +1,55 @@
+CC=gcc
+
+# Add header search paths:
+# - ../emulator   -> headers in emulator folder
+# - ../data       -> headers in data folder
+# - .             -> headers in current folder
+INCLUDES=-I"../emulator" -I"../data" -I.
+
+# Compiler flags:
+# -g            -> include debug info
+# -Wall         -> enable common warnings
+# -Wextra       -> enable extra warnings
+# -Wshadow      -> warn when a variable shadows another variable
+# -Wswitch      -> warn about incomplete switch statements
+# -Wfloat-equal -> warn when floats are compared with ==
+# $(INCLUDES)   -> also include the header paths above
+CFLAGS=-g -Wall -Wextra -Wshadow -Wswitch -Wfloat-equal $(INCLUDES)
+
+# Linker flags start by reusing the compiler flags
+LDFLAGS=$(CFLAGS)
+
+# Run "uname -s" in the shell and store the result in UNAME_S
+# On macOS this usually becomes Darwin
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S), Darwin)
+# ...add macOS frameworks and pthread support for linking
+    LDFLAGS += -framework CoreFoundation -framework ApplicationServices -pthread
+endif
+
+
+SRCS=led_matrix_screen.c # Start the source file list with the main emulator file
+TARGET=emulator-screen
+
+SRCS += $(wildcard ../emulator/*.c)
+ifneq ($(UNAME_S), Darwin)
+SRCS := $(filter-out ../emulator/system_mac.c,$(SRCS))
+endif
+OBJS = $(SRCS:.c=.o)
+# Default target
+all: $(TARGET)
+
+# Linking
+$(TARGET): $(OBJS)
+	$(CC) $(OBJS) $(LDFLAGS) -o $(TARGET)
+
+# Compiling
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Clean up
+clean:
+	rm -f $(OBJS) $(TARGET) *.exe
+
+# Phony targets
+.PHONY: all clean

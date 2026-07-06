@@ -1,0 +1,43 @@
+{
+  "name": "@<scope>/InspireRV3-main",
+  "version": "0.1.0",
+  "description": "A source xpm package with <your-description-here>",
+  "main": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/<user-id>/InspireRV3-main.git"
+  },
+  "homepage": "https://github.com/<user-id>/InspireRV3-main/",
+  "bugs": {
+    "url": "https://github.com/<user-id>/InspireRV3-main/issues/"
+  },
+  "keywords": [
+    "xpack"
+  ],
+  "author": {
+    "name": "Adriel Orlando Johan",
+    "email": "adrielorlando.advan@gmail.com",
+    "url": "<author-url>"
+  },
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {},
+  
+  "xpack": {
+    "minimumXpmRequired": "0.23.2",
+    "dependencies": {},
+    "devDependencies": {
+      "@xpack-dev-tools/riscv-none-elf-gcc": {
+        "specifier": "15.2.0-1.1",
+        "local": "link",
+        "platforms": "all"
+      }
+    },
+    "properties": {},
+    "actions": {},
+    "buildConfigurations": {}
+  }
+}

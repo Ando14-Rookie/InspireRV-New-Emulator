@@ -7,7 +7,7 @@ working with the CH32V003 microcontroller.
 
 Front View|Back View
 :--------:|--------:
-![alt text](image.png)|![alt text](image-1.png)
+![alt text](image\image.png)|![alt text](image\image-1.png)
 
 ## Project Structure
 
@@ -166,74 +166,84 @@ Front View|Back View
   * Green is player while Red is the bot
   * Try to win it (very easy)
 
-## `funconfig.h` Explanation
+## What to Setup Beforehand
 
-```c
-#ifndef _FUNCONFIG_H // Guard
-#define _FUNCONFIG_H
+* [xPack riscv-none-elf-gcc](https://xpack-dev-tools.github.io/riscv-none-elf-gcc-xpack/docs/install/)
+  * The RISC-V cross-compiler toolchain. Provides `riscv-none-elf-gcc, riscv-none-elf-size`, etc. The tools your Makefile uses to compile C code into firmware that runs on the CH32V003 chip.
+  
 
-#define CH32V003 1 // Required
-#define FUNCONF_USE_DEBUGPRINTF 0
-#define FUNCONF_USE_UARTPRINTF 1 // For printf() over UART (Use Hercules to view)
-#define FUNCONF_UART_PRINTF_BAUD 115200 // Baud rate
-// Connect UTX pin to RX pin in WCH-LinkE
+* [Zadig](https://zadig.akeo.ie/#)
+  * A Windows USB driver switcher. Only needed if you use the `wlink-win-x64 build`. It swaps the WCH-LinkE's driver from WCH's owned driver to WinUSB,so the `wlink CLI` can talk to it. **Not needed** if you use `wlink-win-x86`.
+    ![alt text](image.png)
+    *  Turn ✔️ the `List All Devices` in Options.
+    * Ensure to choose `WCH-Link(Interface 0)` & `WinUSB` as the driver to be switched..
 
-// Newly created definitions
-#define horizontalButtons 8
-#define verticalButtons 8
-#define NUM_LEDS (horizontalButtons * verticalButtons)
+* [wlink](https://github.com/ch32-rs/wlink)
+  * An open-source command line tool for flashing firmware to your CH32V003 board via the WCH-LinkE. This is what your `make flash` target calls to automatically `write app.bin` to the chip, no GUI required.
 
-// Not required for the new InspireComputer board
-// For GameConsole, need to define the following
-// and connect buzzer pin to RX.
-// Affects ch32v003fun.h SystemInit() UART printf initialization.
-// #define CH32V003J4M6_USE_PD6_AS_UART_TX
-
-// Required for WS2812B LEDs `ws2812b_simple.h`
-#define FUNCONF_SYSTICK_USE_HCLK 1
-
-#endif
-
-```
+* [WCH-LinkUtility](https://www.wch.cn/downloads/WCH-LinkUtility_ZIP.html)
+  *  The official GUI flashing tool from WCH. Useful for one-off manual flashing, reading chip info, or updating the WCH-LinkE firmware. Not required if you are using `wlink` for automated `make flash`, but good to have as a backup when something goes wrong.
+    ![alt text](image\image-10.png)
 
 ## How to compile 
 
 Two options are available for compilation:
 
 * `make`
-  * Compile and output `*.hex` and `*.bin` files which can be used for flashing the program into
-  CH32V003.
+  * Builds both the firmware and the emulator. After that, it also runs clean, so temporary build files are removed.
 
-* `make emulator`
-  * Compile an executable using `GCC` which runs natively on your operating system, simulating behaviour on real hardware.
+* `make firmware`
+  * Builds only the firmware for the real RISC-V hardware in real_hardware/. Use this when you want the output files for flashing the physical board.
 
-## How to flash firmware to InspireRV
+* `make emu`
+  * Builds only the emulator in new_emulator_system/. Use this when you want to test the program on your computer instead of real hardware.
+
+* `make run_emu`
+  * Builds the emulator first as prequisite (check if *make emu* has been run or not). Then, it runs *./new_emulator_system/switch_page*.
+
+* `make flash`
+  * Builds the firmware first. Then, flash the firmware in `app.bin` to InspireRV.
+
+* `make clean`
+  * Removes all compiled files & directory from both the emulator folder and the hardware folder. Use this to clear old build results before compiling again.
+
+Ensure that the **environment** used in terminal is `MSYS2 MinGW64`, otherwise this error below may occur:
+* > [auto] Unknown environment: MSYS_NT-10.0-26200
+
+## How to Flash Firmware to InspireRV
 
 * Step 1:
-
-  ![alt text](image-2.png)
-  * dd
+  ![alt text](image/image-2.png)
+  * Prepare WCH-LinkE and USB cable extension.
   
 * Step 2:
 
-  ![alt text](image-3.png)
-  * dd
+  ![alt text](image\image-3.png)
+  * Ensure the working LED mode is Red which means RISCV mode.
 
 * Step 3:
 
   Side Left View|Side Right View
   :--------:|--------:
-  ![alt text](image-5.png)|![alt text](image-6.png)
-  * dd
+  ![alt text](image\image-5.png)|![alt text](image\image-6.png)
+  * Connect this way.
 
 * Step 4:   
+  * Go back to VS code, and make sure you are in project root path.
+  * Setup `Zadig` everytime you want to flash via VS Code. Another way to flash is actually to do it manually via WCHLinkE software.
+    ![alt text](image\image-7.png)
+  * Type `make flash` or `make auto` using the **MSYS2 MinGW64** compiler (currently used compiler in this project).
 
-
-  * dd 
+## Typical Error
+  * **Undetected USB Device**
+    * Solution: ensure that the WCH-LinkRV has been updated in `Windows Search>Device Manager Manager>USB devices/USB controller managers`. If it has been updated, the **interface** dropdown list should now include `WCH-LinkRV`
+        ![alt text](image\image-9.png)
+  * **USB error: incompatible driver is installed for this interface**
+    * Solution: reinstall driver with `WCH-LinkRV (Interface 0) --> WinUSB` in the Zadig software.
 
 ## Credits
 
-Great thanks to these projects (LICENSE included):
+Great thanks to these projects/sources (LICENSE included):
 
 * <https://github.com/cnlohr/ch32v003fun>
 * <https://github.com/brian-smith-github/ch32v003_stt>
@@ -241,6 +251,9 @@ Great thanks to these projects (LICENSE included):
 * <https://github.com/michaeljclark/riscv-disassembler>
 * <https://github.com/hexeguitar/ch32v003fun_libs>
 * <https://github.com/eric15342335/inspirematrix-buttons/tree/main>
+* <https://xpack-dev-tools.github.io/riscv-none-elf-gcc-xpack/docs/install/>
+* <https://github.com/ch32-rs/wlink>
+* <https://zadig.akeo.ie/#>
 
 ## Check out our other projects as well
 

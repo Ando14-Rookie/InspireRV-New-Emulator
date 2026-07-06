@@ -6,9 +6,9 @@
     #define FUNCONF_USE_DEBUGPRINTF 0
     #define FUNCONF_USE_UARTPRINTF 1
     #define FUNCONF_UART_PRINTF_BAUD 115200
-    extern const int NUM_LEDS;
-    extern const int horizontalButtons_1;
-    extern const int verticalButtons_1;
+    // extern const int NUM_LEDS;
+    // extern const int horizontalButtons_1;
+    // extern const int verticalButtons_1;
 
     
     // #define NUM_LEDS (horizontalButtons_1 * verticalButtons_1)
@@ -20,12 +20,12 @@
     #include <stdlib.h>
     #include <windows.h>
     #include "../data/buttons.h"
-
+    #include "../emulator-screen/led_matrix_screen.h"
 
 #endif
 
 #ifdef __APPLE__
     #include "system_mac.h"
 #elif defined(_WIN32) //For Windows OS 64-bit and 32-bit
-    #include "../emulator/adriel's_2026_work/system_window.h"
+    #include "../emulator/adriel_2026_work/system_window.h"
 #endif
