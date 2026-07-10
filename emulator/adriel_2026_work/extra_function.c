@@ -39,6 +39,7 @@ void handleButtonFunction(void) {
 
     // Check which page it is as it will have different functions
     // For Painting Space
+
     if (currentPage == PAINTING_SPACE) {
         if (BTN_JUST_PRESSED(BTN_1)) {
             printf("You selected 'LOAD'.\n");
@@ -115,38 +116,45 @@ void handleButtonFunction(void) {
     }
     // For Coding Space
     if (currentPage == CODING_SPACE) {
-
-        if (BTN_JUST_PRESSED(BTN_1)) {
-            printf("You selected 'LOAD'.\n");
+        if (simState != SIM_RUNNING) {
+            if (BTN_JUST_PRESSED(BTN_1)) {
+                printf("You selected 'LOAD'.\n");
+            }
+            else if (BTN_JUST_PRESSED(BTN_2)) {
+                printf("You selected 'BRIGTHNESS CONTROL'.\n");
+            }
+            else if (BTN_JUST_PRESSED(BTN_3)) {
+                printf("You selected 'SAVE 9 TO RESET AFTER SAVED'.\n");
+            }
+            else if (BTN_JUST_PRESSED(BTN_5)) {
+                printf("You selected 'RESULT'.\n");
+                resultSimulation();
+            }
+            else if (BTN_JUST_PRESSED(BTN_6)) {
+                printf("You selected 'RUN SIMULATION'.\n");
+                // Allow momentarily for the function to be in SIM_RUNNING state
+                startStepSimulation(speedVar);
+            }
+            else if (BTN_JUST_PRESSED(BTN_7)) {
+                printf("You selected 'CLEAR'.\n");
+            }
+            else if (BTN_JUST_PRESSED(BTN_8)) {
+                printf("You selected 'CLEAR CURRENT PAGE'.\n");
+                resetCanvaScreen();
+            }
+            else if (BTN_JUST_PRESSED(BTN_9)) {
+                printf("You selected 'TO PAINTING SPACE'.\n");
+                // Change pageState to PAINTING_SPACE
+                currentPage = PAINTING_SPACE;
+            }
         }
-        if (BTN_JUST_PRESSED(BTN_2)) {
-            printf("You selected 'BRIGTHNESS CONTROL'.\n");
-        }
-        if (BTN_JUST_PRESSED(BTN_3)) {
-            printf("You selected 'SAVE 9 TO RESET AFTER SAVED'.\n");
-        }
-        if (BTN_JUST_PRESSED(BTN_4)) {
+        // Button 4 only work when simulation is running
+        else if(simState == SIM_RUNNING && BTN_JUST_PRESSED(BTN_4)){
             printf("You selected 'RETURN TO PROGRAMMING SPACE'.\n");
+            stopStepSimulation();
         }
-        if (BTN_JUST_PRESSED(BTN_5)) {
-            printf("You selected 'RESULT'.\n");
-            resultSimulation();
-        }
-        if (BTN_JUST_PRESSED(BTN_6)) {
-            printf("You selected 'RUN SIMULATION'.\n");
-            // Allow momentarily for the function to be in SIM_RUNNING state
-            startStepSimulation(speedVar);
-        }
-        if (BTN_JUST_PRESSED(BTN_7)) {
-            printf("You selected 'CLEAR'.\n");
-        }
-        if (BTN_JUST_PRESSED(BTN_8)) {
-            printf("You selected 'CLEAR CURRENT PAGE'.\n");
-        }
-        if (BTN_JUST_PRESSED(BTN_9)) {
-            printf("You selected 'TO PAINTING SPACE'.\n");
-            // Change pageState to PAINTING_SPACE
-            currentPage = PAINTING_SPACE;
+        else{
+            printf("Key press is not allowed during simulation, press '4' to stop simulation.\n");
         }
     }
     // Occur when user want to choose foreground or background color
@@ -172,6 +180,3 @@ bool isRunning(void) {
     // Returns false when 9 is pressed → exits the while loop
     return !(currentKey == _9_Key);
 }
-
-
-

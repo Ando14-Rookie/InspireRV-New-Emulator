@@ -3,6 +3,7 @@
 
 #include "../data/buttons.h" // Needed to update which LED to turn on
 #include "../data/colors.h"
+#include "../data/music.h"
 #include "../emulator/adriel_2026_work/emulator_driver/emulator_driver.h"
 
 #include <stdint.h>
@@ -32,7 +33,7 @@ typedef enum {
         0b11 // 3: skipIfCarry, set blue/green color, set x/y variable, set loop variable
 } OpCode;
 
-#define EMU_OPCODE_CLRSCREEN 0b00000
+#define EMU_OPCODE_FILLSCREEN 0b00000
 #define EMU_OPCODE_TURT 0b00001
 #define EMU_OPCODE_PENRGB 0b00010
 #define EMU_OPCODE_SOUNDFREQ 0b00100
@@ -105,8 +106,11 @@ loop variables 0b11
 #define EMU_OPCODE_MINUSSKIP 0b11000
 #define EMU_OPCODE_LOOPVAR 0b11101
 #define EMU_OPCODE_ADDSKIP 0b11111
+// Only works if EMU_OPCODE_PENRGB is set to RED
 #define EMU_OPCODE_RVAR 0b11100
+// Only works if EMU_OPCODE_PENRGB is set to GREEN
 #define EMU_OPCODE_GVAR 0b11010
+// Only works if EMU_OPCODE_PENRGB is set to BLUE
 #define EMU_OPCODE_BVAR 0b11001
 #define EMU_OPCODE_XVAR 0b11110
 #define EMU_OPCODE_YVAR 0b11011
@@ -176,10 +180,14 @@ extern SimState simState;
 extern uint8_t simLineRun;
 extern uint8_t simStepsLeft;
 extern int8_t simDirection;
-extern uint16_t simTimeoutLc;
-extern uint16_t simTimeoutVarc;
+// Saved real version: How long to wait before decoding the next line of opcode
 extern uint16_t simTimeoutLineCode;
+// Mutabel local version: How long to wait before decoding the next line of opcode
+extern uint16_t simTimeoutLc;
+// Saved real version: how long to wait before moving the pointer one
 extern uint16_t simTimeoutVarCode;
+// Mutable Local version: how long to wait before moving the pointer one
+extern uint16_t simTimeoutVarc;
 
 // Countdown of remaining steps for the current move
 extern uint8_t varRun;
@@ -188,8 +196,10 @@ extern uint8_t speedVar;
 
 // uint8_t jump_variable = 0;
 // //uint8_t jump_var_flag = 0;
-// uint16_t sound_freq = 1000;
-// uint16_t sound_dur = 100;
+
+// Handles emulator sound frequency and duration, default is 1000Hz for 100ms
+extern uint16_t soundFreq;
+extern uint16_t soundDur;
 
 /**
  * @brief Turn ON/OFF each button with defined green/blue color.
@@ -208,6 +218,11 @@ extern int getActiveCanvas(void);
  * @brief Initalize the screen and further-coming each coding page canvas
  **/
 extern void initCodingGrid(void);
+
+/**
+ * @brief Print the 4 red LED in row 0 and show which canva is being used
+ **/
+extern void renderRow0(void);
 
 /**
  * @brief After updating one LED, redraw the full coding canvas from your stored data,
@@ -229,9 +244,15 @@ extern void tickStepSimulation(void);
 
 /** 
  * @brief Start the step-by-step simulation with a given speed. Call once, when button 6 is pressed, 
- * to start an animated run
+ * to start an animated run. This must also stop taking any keyboard input.
  * @param speedVar The speed variable for the simulation
  **/
 extern void startStepSimulation(uint8_t speedVar);
+
+/** 
+ * @brief Stop the step-by-step simulation. Call once, when button 4 is pressed, 
+ * to stop the animated run.
+**/
+extern void stopStepSimulation();
 
 #endif

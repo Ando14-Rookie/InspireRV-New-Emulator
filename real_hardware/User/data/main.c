@@ -225,6 +225,9 @@ void displayColorPalette(void);
 void colorPaletteSelection(color_t * selectedColor);
 void logoDisplay(void);
 void red_screen(void);
+void bucketFill(void);
+void choose_led_brightness(void);
+void led_display_brightness_status(void);
 
 typedef struct {
     enum { FOREGROUND_LAYER, BACKGROUND_LAYER, CLEARROUND_LAYER, PAGEGROUND_LAYER } layer;
@@ -245,6 +248,8 @@ color_t rvPointerColor = {.r = 150, .g = 150, .b = 150};
 color_t rvPendownColor = {.r = 255, .g = 0, .b = 0};
 color_t rvClearColor = {.r = 0, .g = 0, .b = 0};
 
+uint8_t brightness_divisor = 10;// >0
+uint8_t normal_brightness_divisor = 10;// >0
 #define LED_PINS GPIOA, 2
 
 
@@ -359,7 +364,8 @@ void rv_code_routine(void) {
                 //flushCanvas();
 
             } else if (JOY_2_pressed()){
-
+                choose_led_brightness();
+                Delay_Ms(1000);
             } else if (JOY_3_pressed()){
                 // save paint
                 for (int _code_line = 0; _code_line <_TOTAL_CODE_LINE; _code_line++) {
@@ -1100,7 +1106,7 @@ void toCodingSpace(uint8_t curr_page){
 void logoDisplay(void){
     clear();
     for (int i = 0; i < 64; i++) {
-        set_color(i, rv_coding_board[i].current_color);
+        set_color(i, rv_coding_board[i].current_color, brightness_divisor);
     }
     /*for(int i = 63; i >0; i--){
         printf("%c, ",rv_coding_board[i].part);
@@ -1134,6 +1140,14 @@ void painting_routine(void) {
                 Delay_Ms(1000);
                 printf("Exit paint loading screen!\n");
             }
+            else if (JOY_2_pressed()) {
+                // save paint
+                //printf("Enter Brightness mode\n");
+                choose_led_brightness();
+                 Delay_Ms(1000);
+                // printf("Exit Brightness mode\n");
+                //break;
+            }
             else if (JOY_3_pressed()) {
                 // save paint
                 printf("Exit paint mode, entering save\n");
@@ -1158,11 +1172,13 @@ void painting_routine(void) {
                 break;
             }
             else if (JOY_8_pressed()) {
-                for (int i = 0; i < NUM_LEDS; i++) {
-                   canvas[i].layer = CLEARROUND_LAYER;
-                   canvas[i].color = clearground;
-                }
-                flushCanvas();
+                bucketFill();
+               
+                // for (int i = 0; i < NUM_LEDS; i++) {
+                //    canvas[i].layer = CLEARROUND_LAYER;
+                //    canvas[i].color = clearground;
+                // }
+                // flushCanvas();
             }
             else if (JOY_9_pressed()) {
                 // save paint
@@ -1459,7 +1475,7 @@ void choose_load_page(app_selected app_current) {
         if (button != no_button_pressed) {
             if (!is_page_used(button * _sizeof_data_aspage + _page_no +
                              _page_addr_begin)) {
-                printf("Page %d is not used\n", button);
+                // printf("Page %d is not used\n", button);
                 // Fill the screen with red to indicate error
                 fill_color((color_t){.r = 100, .g = 0, .b = 0});
                 WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
@@ -1536,10 +1552,10 @@ void choose_save_page(app_selected app_current) {
         if (button != no_button_pressed) {
             if (is_page_used(button * _sizeof_data_aspage + _page_no +
                              _page_addr_begin)) {
-                printf("Page %d already used\n", button);
+                // printf("Page %d already used\n", button);
                 // Overwrite save
             }
-            printf("Selected page %d\n", button);
+            // printf("Selected page %d\n", button);
             // Put canvas to led_array
             for (int i = 0; i < NUM_LEDS; i++) {
                 set_color_no_div(i, canvas[i].color);
@@ -1577,11 +1593,11 @@ void led_display_paint_page_status(app_selected app_current) {
                 is_page_used(_paint_page_no + paint_addr_begin + 1) &&
                 is_page_used(_paint_page_no + paint_addr_begin + 2)) {
                 set_color((_paint_page_no - paint_page_no) / sizeof_paint_data_aspage,
-                    color_savefile_exist);
+                    color_savefile_exist,normal_brightness_divisor);
             }
             else {
                 set_color((_paint_page_no - paint_page_no) / sizeof_paint_data_aspage,
-                    color_savefile_empty);
+                    color_savefile_exist,normal_brightness_divisor);
             }
             //printf("Paint page number: %d\n", _paint_page_no);
         }
@@ -1592,11 +1608,11 @@ void led_display_paint_page_status(app_selected app_current) {
              _opcode_page_no += sizeof_opcode_data_aspage) {
             if (is_page_used(_opcode_page_no + opcode_addr_begin)) {
                 set_color((_opcode_page_no - opcode_page_no) / sizeof_opcode_data_aspage,
-                    color_savefile_exist);
+                    color_savefile_exist, normal_brightness_divisor);
             }
             else {
                 set_color((_opcode_page_no - opcode_page_no) / sizeof_opcode_data_aspage,
-                    color_savefile_empty);
+                    color_savefile_exist,normal_brightness_divisor);
             }
         }
     }
@@ -1609,7 +1625,7 @@ void erase_all_paint_saves(void) {
     for (uint16_t _paint_page_no = paint_page_no + page_status_addr_begin;
          _paint_page_no < paint_page_no_max + paint_page_no; _paint_page_no++) {
         set_page_status(_paint_page_no, 0);
-        printf("Page is now status: %d\n", is_page_used(_paint_page_no));
+        // printf("Page is now status: %d\n", is_page_used(_paint_page_no));
         Delay_Ms(3);
     }
     printf("All paint saves status erased\n");
@@ -1636,17 +1652,93 @@ void erase_all_paint_saves(void) {
 
 void flushCanvas(void) {
     for (int i = 0; i < NUM_LEDS; i++) {
-        set_color(i, canvas[i].color);
+        if(appChosen == rv_code && (i>=4 && i<8)){
+            set_color(i, canvas[i].color, normal_brightness_divisor);
+        }
+        else{
+            set_color(i, canvas[i].color, brightness_divisor);
+        }
+
     }
     WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
 }
 
 void displayColorPalette(void) {
     for (int i = 0; i < NUM_LEDS; i++) {
-        set_color(i, colors[i]);
+        set_color(i, colors[i], brightness_divisor);
     }
     WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
-    printf("Color palette displayed\n");
+    // printf("Color palette displayed\n");
+}
+
+void bucketFill(void){
+    displayColorPalette();
+    int8_t button = no_button_pressed;
+    while (1){
+        button = matrix_pressed_two();
+        if(button != no_button_pressed){
+            for (int i = 0; i < NUM_LEDS; i++) {
+                canvas[i].layer = PAGEGROUND_LAYER;
+                canvas[i].color = colors[button];
+                set_color(i, colors[button], brightness_divisor);
+            }
+            WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
+            break;
+        }
+        else{
+            if(JOY_9_pressed()){
+                printf("Exit Saving\n");
+                break;
+            }
+        }
+        Delay_Ms(200);
+    }
+    //flushCanvas();
+}
+
+void choose_led_brightness(void){
+    led_display_brightness_status();
+    int8_t button = no_button_pressed;
+    while (1){
+        button = matrix_pressed_two();
+        if(button != no_button_pressed){
+            //printf("Selected button %d\n", button);
+            if(button<8){
+                if(button<=2){
+                    brightness_divisor = (button*button)+2;
+                }
+                else{
+                    brightness_divisor = (button*button)+1;
+                }
+                //printf("Brightness: %d\n", brightness_divisor);
+                break;
+            }
+        }
+        else{
+            if(JOY_9_pressed()){
+                printf("Exit Saving\n");
+                break;
+            }
+        }
+        Delay_Ms(200);
+    }
+    flushCanvas();
+
+}
+
+void led_display_brightness_status(void) {
+    clear();
+    for (int i = 0; i < 8; i++) {
+        if(i<=2){
+            set_color(i, colors[NUM_LEDS], ((i*i)+2));
+        }
+        else{
+            set_color(i, colors[NUM_LEDS], ((i*i)+1));
+        }
+
+    }
+
+    WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
 }
 
 void colorPaletteSelection(color_t * selectedColor) {

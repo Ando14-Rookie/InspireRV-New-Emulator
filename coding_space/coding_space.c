@@ -12,7 +12,6 @@ static inline uint8_t varExtraction(uint8_t[8]);
 static inline void compileOpCode(void);
 static inline void movePointerByUnits(uint8_t *, int8_t);
 static inline void handleRow0Click(uint8_t col);
-static inline void renderRow0(void);
 
 uint8_t activeButton;
 uint8_t varRun = 0;
@@ -20,13 +19,20 @@ uint8_t speedVar = 4; // Default speed variable: 0b100 for simulation, can be ch
                       // user in coding space
 
 // Made only for this coding_space.c file to use
-// Default position of the pointer is at (0,0) which is LED 7
-static inline uint8_t simPointer = 7;
-static inline color_t simPenColor = {.r = 255, .g = 0, .b = 0};
+// Default position of the pointer is at (0,0) which is LED 36 n this case
+static inline uint8_t simPointer = 36;
+// .r is green; .g is red; .b is blue
+static inline color_t simPenColor = {.r = 0, .g = 255, .b = 0};
+static inline color_t fillScreenColor = {.r = 0, .g = 0, .b = 0};
 static inline color_t clearColor = {.r = 0, .g = 0, .b = 0};
+
+// Default sound frequency and duration
+uint16_t soundFreq = 1000;
+uint16_t soundDur = 100;
 
 static inline int8_t rVariable = 7, gVariable = 7, bVariable = 7, xVariable = 4,
                      yVariable = 4, loopVariable = 0;
+static inline int8_t jumpVar = 1;
 
 // Hide the cursor by default if varRun is 0, and conversely
 static inline uint8_t simPenStatus = 0;
@@ -39,8 +45,11 @@ uint8_t simStepsLeft = 0;
 int8_t simDirection = EMU_DIR_STOP;
 uint16_t simTimeoutLc = 0;
 uint16_t simTimeoutVarc = 0;
-uint16_t simTimeoutLineCode;
-uint16_t simTimeoutVarCode;
+
+// Default value for determining how long before pointer and lineRun move again 
+
+uint16_t simTimeoutLineCode = 300;
+uint16_t simTimeoutVarCode = 150;
 
 // How far LED needs to move; starting point is when (x,y) =(0,0) which is LED 7
 int8_t currentDirection = 7;
@@ -104,7 +113,7 @@ void extractOpCode(void) {
 }
 
 void resultSimulation(void) {
-    simPointer = 7; // reset to (0,0) fresh every simulation run
+    simPointer = 36; // reset to (0,0) fresh every simulation run
     simPenStatus = 0;
     // Compile the emulator LED into opcode, group, and variable for each line
     // This is done only once at the start of the simulation
@@ -128,6 +137,13 @@ void resultSimulation(void) {
 
     // This will run line per line, and will not stop until all lines have been run
     for (int lineRun = 0; lineRun < TOTAL_CODE_LINE; lineRun++) {
+
+        // Check and end program if EMU_OPCODE_END is found, and break the loop
+        if (opCodeLineStorage[lineRun] == EMU_OPCODE_END) {
+            printf("End of program reached at line %d\n", lineRun);
+            break;
+        }
+
         if (opGrpLineStorage[lineRun] == OPCODE_MOVE) {
             // Get the 5-bit opcode and 3-bit variable for the current line
             uint8_t opcode = opCodeLineStorage[lineRun];
@@ -164,57 +180,72 @@ void resultSimulation(void) {
                 case EMU_OPCODE_PROSPEED:
                     printf("Speed change not implemented for this command, skipping\n");
                     break;
-                    // case EMU_OPCODE_SOUNDDUR:
-                    //     sound_dur = 50+var_line_storage[line_run]*100;
-                    //     break;
-                    // case EMU_OPCODE_SOUNDFREQ:
-                    //     switch(var_line_storage[line_run]){
-                    //         case 0:
-                    //             sound_freq = NOTE_C4;
-                    //             break;
-                    //         case 1:
-                    //             sound_freq = NOTE_D4;
-                    //             break;
-                    //         case 2:
-                    //             sound_freq = NOTE_E4;
-                    //             break;
-                    //         case 3:
-                    //             sound_freq = NOTE_F4;
-                    //             break;
-                    //         case 4:
-                    //             sound_freq = NOTE_G4;
-                    //             break;
-                    //         case 5:
-                    //             sound_freq = NOTE_A4;
-                    //             break;
-                    //         case 6:
-                    //             sound_freq = NOTE_B4;
-                    //             break;
-                    //         case 7:
-                    //             sound_freq = NOTE_C5;
-                    //             break;
-                    //         default:
-                    //             sound_freq = NOTE_C4;
-                    //             break;
-                    //     }
-                    //     JOY_sound(sound_freq,sound_dur);
-                    //     break;
+                case EMU_OPCODE_SOUNDDUR:
+                    // Calculate the new sound duration
+                    soundDur = calculateEmuDuration(varLineStorage[lineRun]);
+                    printf("Sound duration changed to %d ms\n", soundDur);
+                    break;
+                case EMU_OPCODE_SOUNDFREQ:
+                    printf("DEBUG: varLineStorage[%d] = %d, opGrp = %d, opCode = %d\n",
+                        lineRun, varLineStorage[lineRun], opGrpLineStorage[lineRun],
+                        opCodeLineStorage[lineRun]);
+                    switch (varLineStorage[lineRun]) {
+                        case 0:
+                            soundFreq = NOTE_C4;
+                            printf("Playing sound C4 for %d ms\n", soundDur);
+                            break;
+                        case 1:
+                            soundFreq = NOTE_D4;
+                            printf("Playing sound D4 for %d ms\n", soundDur);
+                            break;
+                        case 2:
+                            soundFreq = NOTE_E4;
+                            printf("Playing sound E4 for %d ms\n", soundDur);
+                            break;
+                        case 3:
+                            soundFreq = NOTE_F4;
+                            printf("Playing sound F4 for %d ms\n", soundDur);
+                            break;
+                        case 4:
+                            soundFreq = NOTE_G4;
+                            printf("Playing sound G4 for %d ms\n", soundDur);
+                            break;
+                        case 5:
+                            soundFreq = NOTE_A4;
+                            printf("Playing sound A4 for %d ms\n", soundDur);
+                            break;
+                        case 6:
+                            soundFreq = NOTE_B4;
+                            printf("Playing sound B4 for %d ms\n", soundDur);
+                            break;
+                        case 7:
+                            soundFreq = NOTE_C5;
+                            printf("Playing sound C5 for %d ms\n", soundDur);
+                            break;
+                        default:
+                            soundFreq = NOTE_C4;
+                            printf("Playing sound C4_def for %d ms\n", soundDur);
+                            break;
+                    }
+                    playEmuNote(soundFreq, soundDur);
+                    break;
 
                 // Draw pen down with RGB color or pen up
                 case EMU_OPCODE_PENRGB:
                     // Make pen status hidden
                     if (varLineStorage[lineRun] == 0) {
                         simPenStatus = 0; // Hide pen cursor
+                        printf("Hide pen cursor \n");
                     }
                     else {
                         simPenStatus = 1; // Show pen cursor
                         // Do AND operation to take top bit
-                        if ((varLineStorage[lineRun] & 0x04) == 0x04)
+                        if ((varLineStorage[lineRun] & 0x02) == 0x02)
                             simPenColor.r = 36 * rVariable;
                         else
                             simPenColor.r = 0;
                         // Do AND operation to take middle bit
-                        if ((varLineStorage[lineRun] & 0x02) == 0x02)
+                        if ((varLineStorage[lineRun] & 0x04) == 0x04)
                             simPenColor.g = 36 * gVariable;
                         else
                             simPenColor.g = 0;
@@ -223,76 +254,296 @@ void resultSimulation(void) {
                             simPenColor.b = 36 * bVariable;
                         else
                             simPenColor.b = 0;
-                        // printf("Leave Color R: %d, G: %d, B: %d\n",simPenColor.r,
-                        // simPenColor.g, simPenColor.b);
+
+                        printf("Leave Color R: %d, G: %d, B: %d\n", simPenColor.g,
+                            simPenColor.r, simPenColor.b);
                     }
                     break;
-                    // case _RVCODE_OPCODE_TURT_POS:
-                    //     if(turtStatus == 1){
-                    //         if(penStatus == 1){
-                    //             rv_coding_board[pointerLocation] = (rvCodeParts){'0',
-                    //             rvPendownColor};
-                    //         }
-                    //         else{
-                    //             rv_coding_board[pointerLocation] = (rvCodeParts){'0',
-                    //             rvClearColor};
-                    //         }
+                // Move the starting point of pointer
+                case EMU_OPCODE_TURT_POS:
+                    // Check if pointer is hidden/shown
+                    if (simPenStatus == 1) {
+                        // If shown, set the color of simPenRGB to the pointer color
+                        led_array[simPointer] = &simPenRGB ? simPenColor : clearColor;
+                    }
+                    // Change the pointer location based on the varLineStorage value
+                    switch (varLineStorage[lineRun]) {
+                        case 0:
+                            simPointer = 36;
+                            break;
+                        case 1:
+                            simPointer = 56;
+                            break;
+                        case 2:
+                            simPointer = 0;
+                            break;
+                        case 3:
+                            simPointer = 7;
+                            break;
+                        case 4:
+                            simPointer = 63;
+                            break;
+                        case 7:
+                            simPointer = (yVariable * 8 + (7 - xVariable));
+                            break;
+                        default:
+                            // simPointer = simPointer;
+                            break;
+                    }
+                    break;
+                case EMU_OPCODE_FILLSCREEN:
+                    // Only works if the next line is
+                    if (opCodeLineStorage[lineRun + 1] == EMU_OPCODE_END) {
+                        // Check the MSB if it is 0b100; If yes, it mean set the .r to
+                        // 36*rVariable
+                        if ((varLineStorage[lineRun] & 0x04) == 0x04)
+                            fillScreenColor.g = 36 * gVariable;
+                        else
+                            fillScreenColor.g = 0;
+                        // Check the middle bit if it is 0b010; If yes, it mean set the .g
+                        // to 36*gVariable
+                        if ((varLineStorage[lineRun] & 0x02) == 0x02)
+                            fillScreenColor.r = 36 * rVariable;
+                        else
+                            fillScreenColor.r = 0;
+                        // Check the LSB if it is 0x001; If yes, it mean set the .b to
+                        // 36*bVariable
+                        if ((varLineStorage[lineRun] & 0x01) == 0x01)
+                            fillScreenColor.b = 36 * bVariable;
+                        else
+                            fillScreenColor.b = 0;
 
-                    //     }
-                    //     switch(var_line_storage[line_run]){
-                    //         case 0:
-                    //             pointerLocation = 36;
-                    //             break;
-                    //         case 1:
-                    //             pointerLocation = 56;
-                    //             break;
-                    //         case 2:
-                    //             pointerLocation = 0;
-                    //             break;
-                    //         case 3:
-                    //             pointerLocation = 7;
-                    //             break;
-                    //         case 4:
-                    //             pointerLocation = 63;
-                    //             break;
-                    //         case 7:
-                    //             pointerLocation = (yVariable * 8 + (7-xVariable));
-                    //             break;
-                    //         default:
-                    //             //pointerLocation = pointerLocation;
-                    //             break;
-                    //     }
-                    //     if(turtStatus == 1){
-                    //         rv_coding_board[pointerLocation] = (rvCodeParts){'P',
-                    //         rvPointerColor}; logoDisplay();
-                    //     }
+                        // Change the led_array temporarily
+                        for (int i = 0; i < NUM_LEDS; i++) {
+                            led_array[i] = fillScreenColor;
+                        }
 
-                    //     break;
-                    // case _RVCODE_OPCODE_CLRSCREEN:
-                    //     if((var_line_storage[line_run]&0x04)==0x04)
-                    //         rvPendownColor.r = 36*rVariable;
-                    //     else
-                    //         rvPendownColor.r = 0;
-                    //     if((var_line_storage[line_run]&0x02)==0x02)
-                    //         rvPendownColor.g = 36*gVariable;
-                    //     else
-                    //         rvPendownColor.g = 0;
-                    //     if((var_line_storage[line_run]&0x01)==0x01)
-                    //         rvPendownColor.b = 36*bVariable;
-                    //     else
-                    //         rvPendownColor.b = 0;
-                    //     for (ptr = (char *)rv_coding_board; ptr < (char
-                    //     *)(rv_coding_board + 64);
-                    //          ptr += sizeof(rvCodeParts)) {
-                    //         *(rvCodeParts *)ptr = (rvCodeParts){'0', rvPendownColor};
-                    //     }
-                    //     break;
-                    // default:
-                    //     //currentDirection = _DIR_STOP;
-                    //     break;
+                        printf("Fill Screen Color R: %d, G: %d, B: %d\n",
+                            fillScreenColor.r, fillScreenColor.g, fillScreenColor.b);
+
+                        // Execute fill screen in the end
+                        /*
+                            NOTE: for some reason, this feature require each line to be
+                           filled line-by-line. If there is an empty line, this command
+                           won't work. Lastly, need the "END of Program" command. The
+                           empty line requirement is not implemented YET.
+                        */
+                    }
+                    break;
+                default:
+                    // currentDirection = _DIR_STOP;
+                    break;
             }
             // printf("Pen Line %d Code Done, Next Line | Head code %d\n", line_run,
             // pointerLocation);
+        }
+        else if (opGrpLineStorage[lineRun] == OPCODE_OPTION) {
+            switch (opCodeLineStorage[lineRun]) {
+                case EMU_OPCODE_LOADCODE:
+                    break;
+                case EMU_OPCODE_LOADMUSIC:
+                    break;
+                case EMU_OPCODE_LOADPAINT:
+                    printf("Load Paint command for %d don't exist\n",
+                        varLineStorage[lineRun]);
+                    break;
+                case EMU_OPCODE_JUMPP1:
+                    lineRun = varLineStorage[lineRun] - 1;
+                    printf("-----Jump1 to line %d\n", lineRun);
+                    break;
+                case EMU_OPCODE_JUMPP2:
+                    lineRun = 7 + (varLineStorage[lineRun] - 1);
+                    printf("-----Jump2 to line %d\n", lineRun);
+                    break;
+                case EMU_OPCODE_JUMPP3:
+                    lineRun = 14 + (varLineStorage[lineRun] - 1);
+                    printf("-----Jump3 to line %d\n", lineRun);
+                    break;
+                case EMU_OPCODE_JUMPP4:
+                    lineRun = 21 + (varLineStorage[lineRun] - 1);
+                    printf("-----Jump4 to line %d\n", lineRun);
+                    break;
+                case EMU_OPCODE_END:
+                    printf("END OpCode\n");
+                    lineRun = 29;
+                    break;
+                default:
+                    // currentDirection = _DIR_STOP;
+                    break;
+            }
+            // printf("Option Line %d Code Done, Next Line | Head code %d\n", line_run,
+            // pointerLocation);
+            //  lineRun++;
+            //  timeout_lc = timeout_line_code;
+        }
+        else if (opGrpLineStorage[lineRun] == OPCODE_VARLOOP) {
+            int8_t jumpTemp = 0;
+            switch (opCodeLineStorage[lineRun]) {
+                // Check which jumpVar the command is using and store its value
+                case EMU_OPCODE_GVAR: // gVariable is for Red color
+                    rVariable = varLineStorage[lineRun];
+                    // if(jump_variable == 0)
+                    jumpVar = 1;
+                    break;
+                case EMU_OPCODE_RVAR: // rVariable is for Green color
+                    gVariable = varLineStorage[lineRun];
+                    // if(jump_variable == 0)
+                    jumpVar = 2;
+                    break;
+                case EMU_OPCODE_BVAR:
+                    bVariable = varLineStorage[lineRun];
+                    // if(jump_variable == 0)
+                    jumpVar = 3;
+                    break;
+                case EMU_OPCODE_XVAR:
+                    xVariable = varLineStorage[lineRun];
+                    // if(jump_variable == 0)
+                    jumpVar = 4;
+                    break;
+                case EMU_OPCODE_YVAR:
+                    yVariable = varLineStorage[lineRun];
+                    // if(jump_variable == 0)
+                    jumpVar = 5;
+                    break;
+                // Set looping variable xxx:(0~7), only for looping
+                case EMU_OPCODE_LOOPVAR:
+                    loopVariable = varLineStorage[lineRun];
+                    // if(jump_variable == 0)
+                    jumpVar = 6;
+                    break;
+
+                // Make a counter that decrease with xxx:(0~7) until < 0
+                case EMU_OPCODE_MINUSSKIP:
+                    // Set jumpTemp value depending on the opcode command
+                    switch (jumpVar) {
+                        case 1:
+                            jumpTemp = rVariable;
+                            break;
+                        case 2:
+                            jumpTemp = gVariable;
+                            break;
+                        case 3:
+                            jumpTemp = bVariable;
+                            break;
+                        case 4:
+                            jumpTemp = xVariable;
+                            break;
+                        case 5:
+                            jumpTemp = yVariable;
+                            break;
+                        case 6:
+                            jumpTemp = loopVariable;
+                            break;
+                        default:
+                            break;
+                    }
+                    // Subtract jumpTemp with the "xxx" amount
+                    jumpTemp -= varLineStorage[lineRun];
+                    // printf("LOOP minus at: %d\n",jp_temp);
+
+                    // This will technically skip "lineRun" once, another code \
+                    will lineRun++ once again
+                    if (jumpTemp < 0) {
+                        lineRun++;
+                        // jump_var_flag = 0;
+                        // printf("Skip the line %d\n",line_run);
+                    }
+
+                    // Rewrite the new current stored variable
+                    switch (jumpVar) {
+                        case 1:
+                            rVariable = jumpTemp;
+                            break;
+                        case 2:
+                            gVariable = jumpTemp;
+                            break;
+                        case 3:
+                            bVariable = jumpTemp;
+                            break;
+                        case 4:
+                            xVariable = jumpTemp;
+                            break;
+                        case 5:
+                            yVariable = jumpTemp;
+                            break;
+                        case 6:
+                            loopVariable = jumpTemp;
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+
+                // Make a counter that increase with xxx:(0~7) until > 7
+                case EMU_OPCODE_ADDSKIP:
+                    switch (jumpVar) {
+                        case 1:
+                            jumpTemp = rVariable;
+                            break;
+                        case 2:
+                            jumpTemp = gVariable;
+                            break;
+                        case 3:
+                            jumpTemp = bVariable;
+                            break;
+                        case 4:
+                            jumpTemp = xVariable;
+                            break;
+                        case 5:
+                            jumpTemp = yVariable;
+                            break;
+                        case 6:
+                            jumpTemp = loopVariable;
+                            break;
+                        default:
+                            break;
+                    }
+                    // Subtract jumpTemp with the "xxx" amount
+                    jumpTemp += varLineStorage[lineRun];
+                    // printf("LOOP add ast: %d\n",jp_temp);
+
+                    // This will technically skip "lineRun" once, another code \
+                    will lineRun++ once again
+                    if (jumpTemp > 7) {
+                        lineRun++;
+                        // jump_var_flag = 0;
+                        // printf("Skip the line %d\n",line_run);
+                    }
+
+                    // Rewrite the new current stored variable
+                    switch (jumpVar) {
+                        case 1:
+                            rVariable = jumpTemp;
+                            printf("New rVariable is %d \n", rVariable);
+                            break;
+                        case 2:
+                            gVariable = jumpTemp;
+                            printf("New gVariable is %d \n", gVariable);
+                            break;
+                        case 3:
+                            bVariable = jumpTemp;
+                            printf("New bVariable is %d \n", bVariable);
+                            break;
+                        case 4:
+                            xVariable = jumpTemp;
+                            break;
+                        case 5:
+                            yVariable = jumpTemp;
+                            break;
+                        case 6:
+                            loopVariable = jumpTemp;
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                default:
+                    // currentDirection = _DIR_STOP;
+                    break;
+            }
+            // printf("Loop Line %d Code Done, Next Line | Head code %d\n", line_run,
+            // pointerLocation);
+            // timeout_lc = timeout_line_code;
         }
     }
 
@@ -310,6 +561,16 @@ void resultSimulation(void) {
 
     // Send to display
     WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
+
+    // Take the last fillScreenColor(if more than 1 command exist) and apply it to the
+    // entire led_array
+    if (fillScreenColor.r != 0 || fillScreenColor.g != 0 || fillScreenColor.b || 0) {
+        // Return fillScreenColor to default black after filling the screen
+        fillScreenColor.r = 0;
+        fillScreenColor.g = 0;
+        fillScreenColor.b = 0;
+    }
+
     printf("Simulation complete.\n");
 }
 
@@ -318,7 +579,8 @@ void tickStepSimulation(void) {
     // called in led_matrix_screen.c
     /**
      * --simTimeoutLc : subtract 1 from the counter. This represents "one frame of the
-     * main loop has passed. simLineRun++ : move to the next line of opcode simTimeoutLc /
+     * main loop has passed. 
+     * simLineRun++ : move to the next line of opcode simTimeoutLc /
      * simTimeoutLineCode: How long to wait before decoding the next line of opcode
      * simTimeoutVarc / simTimeoutVarCode: How long to wait before moving the pointer one
      * more cell
@@ -327,6 +589,8 @@ void tickStepSimulation(void) {
     if (simState != SIM_RUNNING)
         return;
 
+    // Stops after simLineRun exceeds the total code line, i.e., when all \
+    opcode line has been run
     if (simLineRun >= TOTAL_CODE_LINE) {
         set_color(simPointer, pointerColor);
         WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
@@ -335,9 +599,16 @@ void tickStepSimulation(void) {
         return;
     }
 
+    // This `simTimeoutLc` and `simTimeoutVarc` is the local timer in function
+    // The real stored value is in `simTimeoutLineCode` and `simTimeoutVarCode`
+    // These 2 variables have been defined in startStepSimulation()
+
     // Only decode a new line when we're not mid-move
     if (simStepsLeft == 0) {
+        // printf("Total steps for code line %d is %d", simLineRun, simStepsLeft);
+
         --simTimeoutLc;
+        // This means logic for line code below will only execute after simTimeOutLc has passed certain period
         if (simTimeoutLc > 0)
             return; // still waiting for the line delay
 
@@ -350,13 +621,16 @@ void tickStepSimulation(void) {
             if (opcode < EMU_OPCODE_FD0 || opcode > EMU_OPCODE_FD315) {
                 simLineRun++;
                 simTimeoutLc = simTimeoutLineCode;
+                printf("Command not found, do nothing\n");
                 return;
             }
 
             // Set up the move: how many steps to take, and in which direction
             simDirection = getDirectionDelta(opcode);
+            printf("Moving in direction: %d | Steps: %d\n", simDirection, zUnits);
             simStepsLeft = zUnits;
 
+            // If movement direction has 0 units, then just go to next line
             if (zUnits == 0) {
                 simLineRun++;
                 simTimeoutLc = simTimeoutLineCode;
@@ -386,6 +660,60 @@ void tickStepSimulation(void) {
                     // Reset the countdown timers to the new speed values
                     simTimeoutLc = simTimeoutLineCode;
                     break;
+                case EMU_OPCODE_SOUNDDUR:
+                    // Calculate the new sound duration
+                    soundDur = calculateEmuDuration(varLineStorage[simLineRun]);
+                    printf("Sound duration changed to %d ms\n", soundDur);
+                    // Proceed to nextline
+                    simLineRun++;
+                    break;
+                case EMU_OPCODE_SOUNDFREQ:
+                    printf("DEBUG: varLineStorage[%d] = %d, opGrp = %d, opCode = %d\n",
+                        simLineRun, varLineStorage[simLineRun],
+                        opGrpLineStorage[simLineRun], opCodeLineStorage[simLineRun]);
+                    switch (varLineStorage[simLineRun]) {
+                        case 0:
+                            soundFreq = NOTE_C4;
+                            printf("Playing sound C4 for %d ms\n", soundDur);
+                            break;
+                        case 1:
+                            soundFreq = NOTE_D4;
+                            printf("Playing sound D4 for %d ms\n", soundDur);
+                            break;
+                        case 2:
+                            soundFreq = NOTE_E4;
+                            printf("Playing sound E4 for %d ms\n", soundDur);
+                            break;
+                        case 3:
+                            soundFreq = NOTE_F4;
+                            printf("Playing sound F4 for %d ms\n", soundDur);
+                            break;
+                        case 4:
+                            soundFreq = NOTE_G4;
+                            printf("Playing sound G4 for %d ms\n", soundDur);
+                            break;
+                        case 5:
+                            soundFreq = NOTE_A4;
+                            printf("Playing sound A4 for %d ms\n", soundDur);
+                            break;
+                        case 6:
+                            soundFreq = NOTE_B4;
+                            printf("Playing sound B4 for %d ms\n", soundDur);
+                            break;
+                        case 7:
+                            soundFreq = NOTE_C5;
+                            printf("Playing sound C5 for %d ms\n", soundDur);
+                            break;
+                        default:
+                            soundFreq = NOTE_C4;
+                            printf("Playing sound C4_def for %d ms\n", soundDur);
+                            break;
+                    }
+                    playEmuNote(soundFreq, soundDur);
+                    // Proceed to nextline
+                    simLineRun++;
+                    break;
+
                 case EMU_OPCODE_PENRGB:
                     // Make pen status hidden
                     if (varLineStorage[simLineRun] == 0) {
@@ -393,13 +721,13 @@ void tickStepSimulation(void) {
                     }
                     else {
                         simPenStatus = 1; // Show pen cursor
-                        // Do AND operation to take top bit
-                        if ((varLineStorage[simLineRun] & 0x04) == 0x04)
+                        // Do AND operation to take middle bit (rVar: Handle green color)
+                        if ((varLineStorage[simLineRun] & 0x02) == 0x02)
                             simPenColor.r = 36 * rVariable;
                         else
                             simPenColor.r = 0;
-                        // Do AND operation to take middle bit
-                        if ((varLineStorage[simLineRun] & 0x02) == 0x02)
+                        // Do AND operation to take top bit (gVar: Handle red color)
+                        if ((varLineStorage[simLineRun] & 0x04) == 0x04)
                             simPenColor.g = 36 * gVariable;
                         else
                             simPenColor.g = 0;
@@ -414,11 +742,300 @@ void tickStepSimulation(void) {
                     // Proceed to next line
                     simLineRun++;
                     break;
+                // Move the starting point of pointer
+                case EMU_OPCODE_TURT_POS:
+                    // Check if pointer is hidden/shown
+                    if (simPenStatus == 1) {
+                        // If shown, set the color of simPenRGB to the pointer color
+                        led_array[simPointer] = &simPenRGB ? simPenColor : clearColor;
+                    }
+                    // Change the pointer location based on the varLineStorage value
+                    switch (varLineStorage[simLineRun]) {
+                        case 0:
+                            simPointer = 36;
+                            break;
+                        case 1:
+                            simPointer = 56;
+                            break;
+                        case 2:
+                            simPointer = 0;
+                            break;
+                        case 3:
+                            simPointer = 7;
+                            break;
+                        case 4:
+                            simPointer = 63;
+                            break;
+                        case 7:
+                            simPointer = (yVariable * 8 + (7 - xVariable));
+                            break;
+                        default:
+                            // simPointer = simPointer;
+                            break;
+                    }
+                    // Proceed to nextline
+                    simLineRun++;
+                    break;
+                case EMU_OPCODE_FILLSCREEN:
+                    // Only works if the next line is
+                    if (opCodeLineStorage[simLineRun + 1] == EMU_OPCODE_END) {
+                        // Check the MSB if it is 0b100; If yes, it mean set the .r to
+                        // 36*rVariable
+                        if ((varLineStorage[simLineRun] & 0x04) == 0x04)
+                            fillScreenColor.g = 36 * gVariable;
+                        else
+                            fillScreenColor.g = 0;
+                        // Check the middle bit if it is 0b010; If yes, it mean set the .g
+                        // to 36*gVariable
+                        if ((varLineStorage[simLineRun] & 0x02) == 0x02)
+                            fillScreenColor.r = 36 * rVariable;
+                        else
+                            fillScreenColor.r = 0;
+                        // Check the LSB if it is 0x001; If yes, it mean set the .b to
+                        // 36*bVariable
+                        if ((varLineStorage[simLineRun] & 0x01) == 0x01)
+                            fillScreenColor.b = 36 * bVariable;
+                        else
+                            fillScreenColor.b = 0;
+
+                        // Change the led_array temporarily
+                        for (int i = 0; i < NUM_LEDS; i++) {
+                            led_array[i] = fillScreenColor;
+                        }
+
+                        printf("Fill Screen Color R: %d, G: %d, B: %d\n",
+                            fillScreenColor.r, fillScreenColor.g, fillScreenColor.b);
+
+                        // Execute fill screen in the end
+                        /*
+                            NOTE: for some reason, this feature require each line to be
+                           filled line-by-line. If there is an empty line, this command
+                           won't work. Lastly, need the "END of Program" command. The
+                           empty line requirement is not implemented YET.
+                        */
+                    }
+                    // Proceed to nextline
+                    simLineRun++;
+                    break;
+                default:
+                    // currentDirection = _DIR_STOP;
+                    break;
             }
             return;
         }
+        else if (opGrpLineStorage[simLineRun] == OPCODE_OPTION) {
+            switch (opCodeLineStorage[simLineRun]) {
+                case EMU_OPCODE_LOADCODE:
+                    break;
+                case EMU_OPCODE_LOADMUSIC:
+                    break;
+                case EMU_OPCODE_LOADPAINT:
+                    printf("Load Paint command for %d don't exist\n",
+                        varLineStorage[simLineRun]);
+                    break;
+                case EMU_OPCODE_JUMPP1:
+                    simLineRun = varLineStorage[simLineRun] - 1;
+                    printf("-----Jump1 to line %d\n", simLineRun);
+                    break;
+                case EMU_OPCODE_JUMPP2:
+                    simLineRun = 7 + (varLineStorage[simLineRun] - 1);
+                    printf("-----Jump2 to line %d\n", simLineRun);
+                    break;
+                case EMU_OPCODE_JUMPP3:
+                    simLineRun = 14 + (varLineStorage[simLineRun] - 1);
+                    printf("-----Jump3 to line %d\n", simLineRun);
+                    break;
+                case EMU_OPCODE_JUMPP4:
+                    simLineRun = 21 + (varLineStorage[simLineRun] - 1);
+                    printf("-----Jump4 to line %d\n", simLineRun);
+                    break;
+                case EMU_OPCODE_END:
+                    printf("END OpCode\n");
+                    simLineRun = 29;
+                    break;
+                default:
+                    // currentDirection = _DIR_STOP;
+                    break;
+            }
+            // printf("Option Line %d Code Done, Next Line | Head code %d\n", line_run,
+            // pointerLocation);
+            simLineRun++;
+            //  timeout_lc = timeout_line_code;
+        }
+        else if (opGrpLineStorage[simLineRun] == OPCODE_VARLOOP) {
+            int8_t jumpTemp = 0;
+            switch (opCodeLineStorage[simLineRun]) {
+                // Check which jumpVar the command is using and store its value
+                case EMU_OPCODE_GVAR: // gVariable is for Red color
+                    rVariable = varLineStorage[simLineRun];
+                    // if(jump_variable == 0)
+                    jumpVar = 1;
+                    break;
+                case EMU_OPCODE_RVAR: // rVariable is for Green color
+                    gVariable = varLineStorage[simLineRun];
+                    // if(jump_variable == 0)
+                    jumpVar = 2;
+                    break;
+                case EMU_OPCODE_BVAR:
+                    bVariable = varLineStorage[simLineRun];
+                    // if(jump_variable == 0)
+                    jumpVar = 3;
+                    break;
+                case EMU_OPCODE_XVAR:
+                    xVariable = varLineStorage[simLineRun];
+                    // if(jump_variable == 0)
+                    jumpVar = 4;
+                    break;
+                case EMU_OPCODE_YVAR:
+                    yVariable = varLineStorage[simLineRun];
+                    // if(jump_variable == 0)
+                    jumpVar = 5;
+                    break;
+                // Set looping variable xxx:(0~7), only for looping
+                case EMU_OPCODE_LOOPVAR:
+                    loopVariable = varLineStorage[simLineRun];
+                    // if(jump_variable == 0)
+                    jumpVar = 6;
+                    break;
+
+                // Make a counter that decrease with xxx:(0~7) until < 0
+                case EMU_OPCODE_MINUSSKIP:
+                    // Set jumpTemp value depending on the opcode command
+                    switch (jumpVar) {
+                        case 1:
+                            jumpTemp = rVariable;
+                            break;
+                        case 2:
+                            jumpTemp = gVariable;
+                            break;
+                        case 3:
+                            jumpTemp = bVariable;
+                            break;
+                        case 4:
+                            jumpTemp = xVariable;
+                            break;
+                        case 5:
+                            jumpTemp = yVariable;
+                            break;
+                        case 6:
+                            jumpTemp = loopVariable;
+                            break;
+                        default:
+                            break;
+                    }
+                    // Subtract jumpTemp with the "xxx" amount
+                    jumpTemp -= varLineStorage[simLineRun];
+                    // printf("LOOP minus at: %d\n",jp_temp);
+
+                    // This will technically skip "lineRun" once, another code \
+                    will lineRun++ once again
+                    if (jumpTemp < 0) {
+                        simLineRun++;
+                        // jump_var_flag = 0;
+                        // printf("Skip the line %d\n",line_run);
+                    }
+
+                    // Rewrite the new current stored variable
+                    switch (jumpVar) {
+                        case 1:
+                            rVariable = jumpTemp;
+                            break;
+                        case 2:
+                            gVariable = jumpTemp;
+                            break;
+                        case 3:
+                            bVariable = jumpTemp;
+                            break;
+                        case 4:
+                            xVariable = jumpTemp;
+                            break;
+                        case 5:
+                            yVariable = jumpTemp;
+                            break;
+                        case 6:
+                            loopVariable = jumpTemp;
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+
+                // Make a counter that increase with xxx:(0~7) until > 7
+                case EMU_OPCODE_ADDSKIP:
+                    switch (jumpVar) {
+                        case 1:
+                            jumpTemp = rVariable;
+                            break;
+                        case 2:
+                            jumpTemp = gVariable;
+                            break;
+                        case 3:
+                            jumpTemp = bVariable;
+                            break;
+                        case 4:
+                            jumpTemp = xVariable;
+                            break;
+                        case 5:
+                            jumpTemp = yVariable;
+                            break;
+                        case 6:
+                            jumpTemp = loopVariable;
+                            break;
+                        default:
+                            break;
+                    }
+                    // Subtract jumpTemp with the "xxx" amount
+                    jumpTemp += varLineStorage[simLineRun];
+                    // printf("LOOP add ast: %d\n",jp_temp);
+
+                    // This will technically skip "lineRun" once, another code \
+                    will lineRun++ once again
+                    if (jumpTemp > 7) {
+                        simLineRun++;
+                        // jump_var_flag = 0;
+                        // printf("Skip the line %d\n",line_run);
+                    }
+
+                    // Rewrite the new current stored variable
+                    switch (jumpVar) {
+                        case 1:
+                            rVariable = jumpTemp;
+                            printf("New rVariable is %d \n", rVariable);
+                            break;
+                        case 2:
+                            gVariable = jumpTemp;
+                            printf("New gVariable is %d \n", gVariable);
+                            break;
+                        case 3:
+                            bVariable = jumpTemp;
+                            printf("New bVariable is %d \n", bVariable);
+                            break;
+                        case 4:
+                            xVariable = jumpTemp;
+                            break;
+                        case 5:
+                            yVariable = jumpTemp;
+                            break;
+                        case 6:
+                            loopVariable = jumpTemp;
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                default:
+                    // currentDirection = _DIR_STOP;
+                    break;
+            }
+            // printf("Loop Line %d Code Done, Next Line | Head code %d\n", line_run,
+            // pointerLocation);
+            // timeout_lc = timeout_line_code;
+            simLineRun++;
+            // Reset local countdown timer to current saved timeout data
+            simTimeoutLc = simTimeoutLineCode;
+        }
         else {
-            // TODO: handle PEN/OPTION/VARLOOP groups the same way
+            // For unknown command, just skip to next line and restart timer for new line
             simLineRun++;
             simTimeoutLc = simTimeoutLineCode;
         }
@@ -427,6 +1044,7 @@ void tickStepSimulation(void) {
 
     // Mid-move: step one cell per simTimeoutVarCode ticks
     --simTimeoutVarc;
+    // This means pointer won't move until 'simTimeoutVarc' certain time has passed
     if (simTimeoutVarc > 0)
         return;
 
@@ -457,7 +1075,7 @@ void startStepSimulation(uint8_t speedVar) {
     extractOpCode();
 
     // Make every variable default
-    simPointer = 7;
+    simPointer = 36;
     simPenStatus = 0;
     simLineRun = 0;
     simStepsLeft = 0;
@@ -481,6 +1099,15 @@ void startStepSimulation(uint8_t speedVar) {
 
     simState = SIM_RUNNING;
     printf("Starting step simulation...\n");
+}
+
+void stopStepSimulation(){
+    // Force stop the simulation
+    simState = SIM_IDLE;
+    printf("Stoping step simulation...\n");
+
+    // Print back the coding space of that canvas
+    renderCodingCanvas();
 }
 
 void updateCodeLED(uint8_t led) {
@@ -648,7 +1275,7 @@ static inline color_t zoneColor(uint8_t col) {
 /**
  * @brief Call this everytime emulator screen is printed and whenever currentPage changes
  **/
-static inline void renderRow0(void) {
+void renderRow0(void) {
     for (uint8_t col = 0; col < GRID_COLS; col++) {
         uint8_t idx = ledIndex(0, col);
 
@@ -713,10 +1340,10 @@ void compileOpCode(void) {
     // }
     for (int codeLine = 0; codeLine < TOTAL_CODE_LINE; codeLine++) {
         // Determine which page you are in now
-        uint8_t tempPage = codeLine / 6;
+        uint8_t tempPage = codeLine / 7;
         // Determine which line it should store
         uint8_t tempLine =
-            7 - (codeLine % 6); // reversed: top-to-bottom instead of bottom-to-top
+            7 - (codeLine % 7); // reversed: top-to-bottom instead of bottom-to-top
 
         // Copy each bit to each line of opCodeStorage from the
         // wholeCodeCanvas[currentCanvas] toggleState

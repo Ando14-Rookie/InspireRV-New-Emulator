@@ -46,7 +46,7 @@ void makeEmulatorScreen(color_t * arr) {
         // Only runs when simSTATE == SIM_RUNNING, which is set in coding_space.c
         tickStepSimulation();
 
-        if (currentPage == PAINTING_SPACE || currentPage == CODING_SPACE) {
+        if ((currentPage == PAINTING_SPACE || currentPage == CODING_SPACE) && simState != SIM_RUNNING) {
             // Ensure logic only works if key just got pressed and not being hold
             if (BTN_JUST_PRESSED(BTN_UP)) {
                 currentposition = (NUM_LEDS + currentposition + 8) % NUM_LEDS;
