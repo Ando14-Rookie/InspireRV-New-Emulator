@@ -224,6 +224,12 @@ extern void initCodingGrid(void);
  **/
 extern void renderRow0(void);
 
+/** 
+ * @brief Used to reset each LED in current canvas into default state (empty).
+ * The canvas option selection will remain visible in each canva. 
+ **/
+extern void resetCanvaScreen(void);
+
 /**
  * @brief After updating one LED, redraw the full coding canvas from your stored data,
  * then draw the pointer on top. It can also be used to redraw the full coding canvas

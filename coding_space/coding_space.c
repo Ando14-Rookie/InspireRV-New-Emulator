@@ -46,7 +46,7 @@ int8_t simDirection = EMU_DIR_STOP;
 uint16_t simTimeoutLc = 0;
 uint16_t simTimeoutVarc = 0;
 
-// Default value for determining how long before pointer and lineRun move again 
+// Default value for determining how long before pointer and lineRun move again
 
 uint16_t simTimeoutLineCode = 300;
 uint16_t simTimeoutVarCode = 150;
@@ -207,15 +207,15 @@ void resultSimulation(void) {
                             printf("Playing sound F4 for %d ms\n", soundDur);
                             break;
                         case 4:
-                            soundFreq = NOTE_G4;
+                            soundFreq = NOTE_G5;
                             printf("Playing sound G4 for %d ms\n", soundDur);
                             break;
                         case 5:
-                            soundFreq = NOTE_A4;
+                            soundFreq = NOTE_A5;
                             printf("Playing sound A4 for %d ms\n", soundDur);
                             break;
                         case 6:
-                            soundFreq = NOTE_B4;
+                            soundFreq = NOTE_B5;
                             printf("Playing sound B4 for %d ms\n", soundDur);
                             break;
                         case 7:
@@ -579,7 +579,7 @@ void tickStepSimulation(void) {
     // called in led_matrix_screen.c
     /**
      * --simTimeoutLc : subtract 1 from the counter. This represents "one frame of the
-     * main loop has passed. 
+     * main loop has passed.
      * simLineRun++ : move to the next line of opcode simTimeoutLc /
      * simTimeoutLineCode: How long to wait before decoding the next line of opcode
      * simTimeoutVarc / simTimeoutVarCode: How long to wait before moving the pointer one
@@ -608,7 +608,8 @@ void tickStepSimulation(void) {
         // printf("Total steps for code line %d is %d", simLineRun, simStepsLeft);
 
         --simTimeoutLc;
-        // This means logic for line code below will only execute after simTimeOutLc has passed certain period
+        // This means logic for line code below will only execute after simTimeOutLc has
+        // passed certain period
         if (simTimeoutLc > 0)
             return; // still waiting for the line delay
 
@@ -1079,6 +1080,16 @@ void startStepSimulation(uint8_t speedVar) {
     simPenStatus = 0;
     simLineRun = 0;
     simStepsLeft = 0;
+    rVariable = 0;
+    gVariable = 0;
+    bVariable = 0;
+    xVariable = 0;
+    yVariable = 0;
+    loopVariable = 0;
+    jumpVar = 0;
+
+    simLineRun = 0;
+    simStepsLeft = 0;
 
     // Calculate how many loop iterations to wait before each step happens
     // how many main-loop ticks to wait before moving on to decode the next line of code
@@ -1097,11 +1108,16 @@ void startStepSimulation(uint8_t speedVar) {
     for (int i = 0; i < NUM_LEDS; i++)
         led_array[i] = offColor;
 
+    // Debugging Purpose
+    // printf("START: r=%d g=%d b=%d x=%d y=%d loop=%d jumpVar=%d ptr=%d line=%d\n",
+    //    rVariable, gVariable, bVariable, xVariable, yVariable,
+    //    loopVariable, jumpVar, simPointer, simLineRun);
+    
     simState = SIM_RUNNING;
     printf("Starting step simulation...\n");
 }
 
-void stopStepSimulation(){
+void stopStepSimulation() {
     // Force stop the simulation
     simState = SIM_IDLE;
     printf("Stoping step simulation...\n");
@@ -1158,6 +1174,25 @@ void initCodingGrid(void) {
 int getActiveCanvas(void) {
     activeButton = canvasButtonPos[currentCanvas];
     return activeButton; // Return column of 7,6,5,4
+}
+
+void resetCanvaScreen(void) {
+    // Change current led_array with the real saved one
+    for (int i = 0; i < NUM_LEDS; i++) {
+        wholeCodeCanvas[currentCanvas][i].currentColor = offColor;
+    }
+
+    // Debug Purpose
+    printf("Reset page: currentCanvas=%d\n", currentCanvas);
+    for (int i = 0; i < NUM_LEDS; i++) {
+        printf("Before[%d] = (%d,%d,%d)\n", i,
+            wholeCodeCanvas[currentCanvas][i].currentColor.r,
+            wholeCodeCanvas[currentCanvas][i].currentColor.g,
+            wholeCodeCanvas[currentCanvas][i].currentColor.b);
+    }
+
+    // Reset current canva screen
+    renderCodingCanvas();
 }
 
 void renderCodingCanvas(void) {

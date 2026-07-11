@@ -5,6 +5,7 @@
 #include "../../data/buttons.h"
 #include "../../data/colors.h"
 #include "../../painting_space/paint_save_space.h"
+#include "../../coding_space/coding_space.h" 
 #include "./emulator_driver/emulator_driver.h"
 #include "system_window.h"
 

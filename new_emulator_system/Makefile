@@ -18,6 +18,23 @@ VPATH    = ../emulator/adriel_2026_work \
 			../data \
 			../painting_space \
 			../coding_space
+ # tells the compiler where to find header files (for system_window.h)
+INCLUDES = -I"../emulator/adriel_2026_work" \
+			-I"../emulator-screen" \
+			-I"../emulator" \
+			-I"../data" \
+			-I"../emulator/adriel_2026_work/emulator_driver" \
+			-I"../painting_space" \
+			-I"../coding_space"
+
+# tells make where to find source files (for system_window.c)
+VPATH    = ../emulator/adriel_2026_work \
+			../emulator-screen \
+			../emulator/adriel_2026_work/emulator_driver  \
+			../emulator \
+			../data \
+			../painting_space \
+			../coding_space
 
 # ─── Files ──────────────────────────────────────────────────────────
 TARGET  = switch_page # name of the final executable
@@ -30,6 +47,7 @@ SRCS    = switch_page.c \
 		../emulator/ws2812b_simple.c \
 		../data/buttons.c   \
 		../data/colors.c   \
+		../data/music.c   \
 		../painting_space/painting_space.c \
 		../painting_space/paint_save_space.c \
 		../coding_space/coding_space.c
@@ -43,6 +61,7 @@ OBJS    = switch_page.o \
 		emulator_driver.o \
 		buttons.o \
 		colors.o \
+		music.o \
 		painting_space.o \
 		paint_save_space.o \
 		coding_space.o
@@ -66,8 +85,19 @@ rebuild: clean all
 
 # The test target depending directly on the compiled program
 emulator: rebuild # rebuild emulator first before running
+# tells make that a target is a "fake" command rather than an actual file. \
+It forces the recipe to run even if a file with that name exists.
+.PHONY: all clean rebuild emulator
+
+rebuild: clean all
+
+# The test target depending directly on the compiled program
+emulator: rebuild # rebuild emulator first before running
 	./$(TARGET) --run-tests
 
+# 2. The Clean Target
+clean:
+	-rm -f *.o *.obj *.exe $(TARGET) emulator switch_page
 # 2. The Clean Target
 clean:
 	-rm -f *.o *.obj *.exe $(TARGET) emulator switch_page

@@ -11,6 +11,14 @@
 #define NUM_LEDS NUM_BUTTONS
 #endif
 
+#ifndef BUTTONS_H
+
+#ifndef NUM_BUTTONS 
+// Calculate directly from the matrix layout to avoid macro collisions
+#define NUM_BUTTONS (HORIZONTAL_BUTTONS * VERTICAL_BUTTONS)
+#define NUM_LEDS NUM_BUTTONS
+#endif
+
 #define JOY_N 197  // joypad UP
 #define JOY_NE 259 // joypad UP + RIGHT
 #define JOY_NW 567 // JOYPAD UP + LEFT
@@ -26,6 +34,59 @@
 //Define the total of buttons horizontal and vertical
 #define HORIZONTAL_BUTTONS 8 
 #define VERTICAL_BUTTONS 8 
+
+#include <stdint.h>
+#include <stdbool.h>
+#include "../emulator/adriel_2026_work/emulator_driver/emulator_driver.h"
+
+// To be done in the future
+typedef struct {
+    bool prev;
+    bool cur;
+} ButtonState;
+
+typedef enum {
+    BTN_1 = 0, BTN_2, BTN_3, BTN_4, BTN_5,
+    BTN_6, BTN_7, BTN_8, BTN_9,
+    BTN_UP, BTN_DOWN, BTN_LEFT, BTN_RIGHT, BTN_ENTER,
+    BTN_COUNT
+} ButtonID;
+
+// Make these private to only where the file call these variables and functions below
+extern ButtonState keyButtons[BTN_COUNT];
+
+// Pressed this frame only (just pressed)
+#define BTN_JUST_PRESSED(id)  (!keyButtons[id].prev &&  keyButtons[id].cur)
+
+// Released this frame only
+#define BTN_JUST_RELEASED(id) (keyButtons[id].prev && !keyButtons[id].cur)
+
+// Held down
+#define BTN_HELD(id) (keyButtons[id].prev &&  keyButtons[id].cur)
+
+void checkAllButtons(void);
+void updateAllButtons(void);
+/** 
+ * @brief Call once per frame/loop to check one of the 9 buttons pressed or not
+ **/ 
+void checkNineButton(void);
+
+/** 
+ * @brief Call once per frame/loop to update 9 buttons only
+ **/ 
+void updateNineButton(void);
+
+/** 
+ * @brief Call once per frame/loop to check one of the move/enter buttons pressed or not
+ **/ 
+void checkMoveButton(void);
+
+/** 
+ * @brief Call once per frame/loop to update I,J,K,L, Enter buttons only
+ **/ 
+void updateMoveButton(void);
+
+#endif
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -243,6 +304,14 @@ static const int buttons[NUM_BUTTONS] = {BUTTON_0, BUTTON_1, BUTTON_2, BUTTON_3,
 #define BUTTON_63 20
 
 /// @brief Array of buttons corresponding to the ADC values, for linear searching
+static const int buttons[NUM_BUTTONS];
+
+/** 
+ * @brief Show whether each LED condition is on or not; `0` means OFF, 
+ * whereas `1` means Foreground, `2` means Background
+ **/  
+extern uint8_t ledCondition[NUM_BUTTONS];
+
 static const int buttons[NUM_BUTTONS];
 
 /** 

@@ -2,13 +2,15 @@
 #define WS2812BSIMPLE_IMPLEMENTATION
 #include <stdbool.h>
 #include <stdio.h>
-#include "../ch32v003fun/ch32v003_i2c.h"
-#include "../ch32v003fun/driver.h"
-#include "../ch32v003fun/ws2812b_simple.h"
-#include "colors.h"
-#include "music.h"
+#include "./ch32v003fun/ch32v003_i2c.h"
+#include "./data/colors.h"
+#include "./ch32v003fun/driver.h"
+//#include "./data/fonts.h"
+#include "./data/music.h"
+#include "./ch32v003fun/ws2812b_simple.h"
 
-#define EEPROM_ADDR 0x53 // //Storage defines obtained from i2c_scan(), before shifting by 1 bit
+//Storage defines
+#define EEPROM_ADDR 0x53 // obtained from i2c_scan(), before shifting by 1 bit
 #define page_size 64    // range of byte that stores status of page[x]
 #define opcode_size 28    // range of byte that stores opcodes
 #define init_status_addr_begin 0
@@ -36,10 +38,14 @@
 #define app_icon_page_no (0 * sizeof_paint_data_aspage) //no = 0
 #define app_icon_page_no_max (8 * sizeof_paint_data_aspage) //size = 24
 
+
 #define delay 1000
 
+
+
 // initialize file storage structure for 32kb/512pages
-void init_storage(void);// first 8 pages are used for status 
+// first 8 pages are used for status
+void init_storage(void);
 void save_paint(uint16_t paint_no, color_t * data, uint8_t is_icon);    // save paint data to eeprom, paint 0 stored in page ?? (out of page 0 to 511)
 void load_paint(uint16_t paint_no, color_t * data, uint8_t is_icon);    // load paint data from eeprom, paint 0 stored in page ?? (out of page 0 to 511)
 void set_page_status(uint16_t page_no, uint8_t status); // set page status to 0 or 1
@@ -205,11 +211,7 @@ uint32_t timeout_line_code = 300;
 uint8_t funcRun[8] = {0};
 uint8_t numRun[8] = {0};
 uint8_t programStored[64] = {0};
-
-// Where program store the 4 canvas of binary code 
-uint8_t opCodeStorage[4][7][8] = {0}; 
-
-// Where user store its own code 
+uint8_t opCodeStorage[4][7][8] = {0};
 uint8_t opCodeToStored[28] ={0};
 uint8_t currentPage = 1;
 typedef struct rvCodeParts {
@@ -218,6 +220,11 @@ typedef struct rvCodeParts {
 } rvCodeParts;
 rvCodeParts rv_coding_board[64]={'0'}; // 8x8 gameboard
 int8_t pointerLocation = 36;
+
+
+
+
+
 
 // Color defines
 void flushCanvas(void);
@@ -264,7 +271,7 @@ int main(void) {
     //printf("I2C Initialized\n");
     init_storage();
     // Hold button Y at startup to reset all paints
-    JOY_sound(2000, 1000);
+    JOY_sound(1000, 100);
     uint16_t delay_countdown = 50;
     while (delay_countdown-- > 0) {
         if (JOY_Y_pressed()) {
@@ -366,6 +373,7 @@ void rv_code_routine(void) {
             } else if (JOY_2_pressed()){
                 choose_led_brightness();
                 Delay_Ms(1000);
+
             } else if (JOY_3_pressed()){
                 // save paint
                 for (int _code_line = 0; _code_line <_TOTAL_CODE_LINE; _code_line++) {
@@ -1003,12 +1011,6 @@ void rvCodeRun(uint8_t direct_result){
     }
 }
 
-/*
-    How bit is usually formed:
-    bit 4 bit 3 bit 2 bit 1 bit 0
-    16     8     4     2     1
-*/
-
 uint8_t opGroupExtraction(uint8_t received_message[8]){
     uint8_t opcodeGroup = 0;
     for (int i = 7; i > 5; i--) {
@@ -1027,11 +1029,9 @@ uint8_t opCodeExtraction(uint8_t received_message[8]){
     uint8_t extracted_code = 0;
     for (int i = 7; i > 2; i--) {
         if(received_message[i]>0)
-            // Extract the leftmost bit 4 from the received_message[8], 0x10 sets bit 4
             if(i == 7){
                 extracted_code = extracted_code|0x10;
             }
-            // Extract the 2nd leftmost bit 3 from the received_message[8], 0x08 sets bit 3
             else if(i == 6){
                 extracted_code = extracted_code|0x08;
             }
@@ -1039,7 +1039,6 @@ uint8_t opCodeExtraction(uint8_t received_message[8]){
                 extracted_code = extracted_code|0x04;
             else if(i == 4)
                 extracted_code = extracted_code|0x02;
-            // Extract the rightmost bit 0 (0x01) from the received_message[8]
             else if(i == 3)
                 extracted_code = extracted_code|0x01;
     }
@@ -1118,6 +1117,16 @@ void logoDisplay(void){
     WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
 }
 
+
+
+
+
+
+
+
+
+
+
 //////////////////////////////////////////////////
 //**********************************************//
 //****************  RV Paint    ****************//
@@ -1173,12 +1182,11 @@ void painting_routine(void) {
             }
             else if (JOY_8_pressed()) {
                 bucketFill();
-               
-                // for (int i = 0; i < NUM_LEDS; i++) {
-                //    canvas[i].layer = CLEARROUND_LAYER;
-                //    canvas[i].color = clearground;
-                // }
-                // flushCanvas();
+                /*for (int i = 0; i < NUM_LEDS; i++) {
+                   canvas[i].layer = CLEARROUND_LAYER;
+                   canvas[i].color = clearground;
+                }
+                flushCanvas();*/
             }
             else if (JOY_9_pressed()) {
                 // save paint
@@ -1235,6 +1243,15 @@ void iconShow(void){
     }
     WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
 }
+
+
+
+
+
+
+
+
+
 
 //////////////////////////////////////////////////
 //**********************************************//
@@ -1475,7 +1492,7 @@ void choose_load_page(app_selected app_current) {
         if (button != no_button_pressed) {
             if (!is_page_used(button * _sizeof_data_aspage + _page_no +
                              _page_addr_begin)) {
-                // printf("Page %d is not used\n", button);
+                //printf("Page %d is not used\n", button);
                 // Fill the screen with red to indicate error
                 fill_color((color_t){.r = 100, .g = 0, .b = 0});
                 WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
@@ -1534,6 +1551,7 @@ void choose_load_page(app_selected app_current) {
     WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);*/
 }
 
+
 void choose_save_page(app_selected app_current) {
     led_display_paint_page_status(app_current);
     int8_t button = no_button_pressed;
@@ -1552,10 +1570,10 @@ void choose_save_page(app_selected app_current) {
         if (button != no_button_pressed) {
             if (is_page_used(button * _sizeof_data_aspage + _page_no +
                              _page_addr_begin)) {
-                // printf("Page %d already used\n", button);
+                //printf("Page %d already used\n", button);
                 // Overwrite save
             }
-            // printf("Selected page %d\n", button);
+            //printf("Selected page %d\n", button);
             // Put canvas to led_array
             for (int i = 0; i < NUM_LEDS; i++) {
                 set_color_no_div(i, canvas[i].color);
@@ -1597,7 +1615,7 @@ void led_display_paint_page_status(app_selected app_current) {
             }
             else {
                 set_color((_paint_page_no - paint_page_no) / sizeof_paint_data_aspage,
-                    color_savefile_exist,normal_brightness_divisor);
+                    color_savefile_empty,normal_brightness_divisor);
             }
             //printf("Paint page number: %d\n", _paint_page_no);
         }
@@ -1608,14 +1626,15 @@ void led_display_paint_page_status(app_selected app_current) {
              _opcode_page_no += sizeof_opcode_data_aspage) {
             if (is_page_used(_opcode_page_no + opcode_addr_begin)) {
                 set_color((_opcode_page_no - opcode_page_no) / sizeof_opcode_data_aspage,
-                    color_savefile_exist, normal_brightness_divisor);
+                    color_savefile_exist,normal_brightness_divisor);
             }
             else {
                 set_color((_opcode_page_no - opcode_page_no) / sizeof_opcode_data_aspage,
-                    color_savefile_exist,normal_brightness_divisor);
+                    color_savefile_empty,normal_brightness_divisor);
             }
         }
     }
+
 
     WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
 }
@@ -1625,7 +1644,7 @@ void erase_all_paint_saves(void) {
     for (uint16_t _paint_page_no = paint_page_no + page_status_addr_begin;
          _paint_page_no < paint_page_no_max + paint_page_no; _paint_page_no++) {
         set_page_status(_paint_page_no, 0);
-        // printf("Page is now status: %d\n", is_page_used(_paint_page_no));
+        //printf("Page is now status: %d\n", is_page_used(_paint_page_no));
         Delay_Ms(3);
     }
     printf("All paint saves status erased\n");
@@ -1663,12 +1682,13 @@ void flushCanvas(void) {
     WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
 }
 
+
 void displayColorPalette(void) {
     for (int i = 0; i < NUM_LEDS; i++) {
         set_color(i, colors[i], brightness_divisor);
     }
     WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
-    // printf("Color palette displayed\n");
+    //printf("Color palette displayed\n");
 }
 
 void bucketFill(void){
@@ -1741,6 +1761,7 @@ void led_display_brightness_status(void) {
     WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
 }
 
+
 void colorPaletteSelection(color_t * selectedColor) {
     displayColorPalette();
     while (1) {
@@ -1755,6 +1776,7 @@ void colorPaletteSelection(color_t * selectedColor) {
         selectedColor->b);
     flushCanvas();
 }
+
 
 void red_screen(void) {
     fill_color((color_t){.r = 100, .g = 0, .b = 0});

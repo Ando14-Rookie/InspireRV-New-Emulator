@@ -45,13 +45,13 @@ const uint16_t num_colors = NUM_LEDS;
 color_t color_divide(color_t color, uint8_t divider) {
     return (color_t){color.r / divider, color.g / divider, color.b / divider};
 }
-uint8_t ledDivider = 10;
+uint8_t ledDivisor = 10;
 #define smaller(x, y) ((x) < (y) ? (x) : (y))
-void set_color(uint8_t led, color_t color) {
+void set_color(uint8_t led, color_t color, uint8_t ledDivisor) {
     //uint8_t divider = 20;
-    led_array[led].r = smaller(color.r, color.r / ledDivider);
-    led_array[led].g = smaller(color.g, color.g / ledDivider);
-    led_array[led].b = smaller(color.b, color.b / ledDivider);
+    led_array[led].r = smaller(color.r, color.r / ledDivisor);
+    led_array[led].g = smaller(color.g, color.g / ledDivisor);
+    led_array[led].b = smaller(color.b, color.b / ledDivisor);
 }
 
 void set_color_no_div(uint8_t led, color_t color) {
@@ -63,13 +63,13 @@ void set_color_no_div(uint8_t led, color_t color) {
 
 static inline void fill_color(color_t color) {
     for (int i = 0; i < NUM_LEDS; i++) {
-        set_color(i, color);
+        set_color(i, color, ledDivisor);
     }
 }
 
 static inline void clear(void) {
     for (int i = 0; i < NUM_LEDS; i++) {
-        set_color(i, (color_t){0, 0, 0});
+        set_color(i, (color_t){0, 0, 0},ledDivisor);
     }
 }
 
@@ -93,7 +93,7 @@ static inline void fill_logo(void) {
             case 28:
             case 23:
             case 19:
-                set_color(i, (color_t){0, 100, 0});
+                set_color(i, (color_t){0, 100, 0},ledDivisor);
             break;
             case 2:
             case 11:
@@ -103,10 +103,10 @@ static inline void fill_logo(void) {
             case 24:
             case 36:
             case 32:
-                set_color(i, (color_t){0, 0, 100});
+                set_color(i, (color_t){0, 0, 100},ledDivisor);
             break;
             default:
-                set_color(i, (color_t){0, 0, 0});
+                set_color(i, (color_t){0, 0, 0},ledDivisor);
             break;
         }
     }
