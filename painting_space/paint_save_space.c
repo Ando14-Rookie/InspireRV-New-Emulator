@@ -257,7 +257,7 @@ void initPaintSaveSlots(void) {
     }
 }
 
-void saveOrLoadToSlot(void) {
+void saveOrLoadPaintToSlot(void) {
     // renderSaveLoadSlotScreen function: to print save/load screen emulator and let user
     // choose which slot
     renderSaveLoadSlotScreen();

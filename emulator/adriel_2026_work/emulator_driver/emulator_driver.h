@@ -18,6 +18,8 @@ typedef enum {
     PAINTING_LOAD_CONFIRM,
     CODING_SAVE_SLOT,
     CODING_SAVE_CONFIRM,
+    CODING_LOAD_SLOT, 
+    CODING_LOAD_CONFIRM
 } PageState;
 
 extern PageState currentPage;

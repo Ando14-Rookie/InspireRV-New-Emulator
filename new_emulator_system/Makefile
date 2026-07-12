@@ -50,6 +50,7 @@ SRCS    = switch_page.c \
 		../data/music.c   \
 		../painting_space/painting_space.c \
 		../painting_space/paint_save_space.c \
+		../coding_space/code_save_space.c \
 		../coding_space/coding_space.c
 
 # list of object files generated from source files
@@ -64,6 +65,7 @@ OBJS    = switch_page.o \
 		music.o \
 		painting_space.o \
 		paint_save_space.o \
+		code_save_space.o \
 		coding_space.o
 
 # ─── Default rule: build the executable ─────────────────────────────

@@ -23,7 +23,7 @@ void initPaintSaveSlots(void);
  * @brief Save a specific slot to `paintSaveSlots[slotIndex]` and ensure paintSlotUsed[slotIndex] 
  * has been used (true)
 **/
-void saveOrLoadToSlot(void);
+void saveOrLoadPaintToSlot(void);
 
 /** 
  * @brief Contains the logic that allows User to chose which slot to save. It also needs to have a 

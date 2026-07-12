@@ -119,12 +119,25 @@ void handleButtonFunction(void) {
         if (simState != SIM_RUNNING) {
             if (BTN_JUST_PRESSED(BTN_1)) {
                 printf("You selected 'LOAD'.\n");
+                // Remember previous page: PAINTING_SPACE
+                prevPageState = currentPage;
+                // Change pageState to CODING_LOAD_SLOT
+                currentPage = CODING_LOAD_SLOT;
+                // Will print the page ID: 11
+                printf("Now page state is %d\n", currentPage);
             }
             else if (BTN_JUST_PRESSED(BTN_2)) {
                 printf("You selected 'BRIGTHNESS CONTROL'.\n");
             }
             else if (BTN_JUST_PRESSED(BTN_3)) {
                 printf("You selected 'SAVE 9 TO RESET AFTER SAVED'.\n");
+                printf("Now page state is %d\n", currentPage);
+                // Remember previous page: PAINTING_SPACE
+                prevPageState = currentPage;
+                // Change pageState to CODING_SAVE_SLOT
+                currentPage = CODING_SAVE_SLOT;
+                // Will print the page ID: 9
+                printf("Now page state is %d\n", currentPage);
             }
             else if (BTN_JUST_PRESSED(BTN_5)) {
                 printf("You selected 'RESULT'.\n");
@@ -168,7 +181,11 @@ void handleButtonFunction(void) {
     }
 
     if (currentPage == PAINTING_SAVE_SLOT || currentPage == PAINTING_LOAD_SLOT) {
-        saveOrLoadToSlot();
+        saveOrLoadPaintToSlot();
+    }
+
+    if (currentPage == CODING_SAVE_SLOT || currentPage == CODING_LOAD_SLOT) {
+        saveOrLoadCodeToSlot();
     }
 
     // Update the previous data to check if button actually being press, just press or
