@@ -25,27 +25,16 @@ extern PageState currentPage;
 
 // #include "..\new_emulator_system\funconfig.h"
 // #include "..\ch32v003fun\ws2812b_simple.h"
-<<<<<<< HEAD
-#include "../emulator/ws2812b_simple.h"
-#include <stdbool.h>
-#include <stdlib.h>
-#include "../emulator-screen/led_matrix_screen.h"
-=======
 #include "../../emulator/ws2812b_simple.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include "../../emulator-screen/led_matrix_screen.h"
->>>>>>> f27420e (Fully fixed after accidentally hard reset.)
 
 #if defined(_WIN32) || defined(_WIN64)
 #define NOMINMAX 1          // Prevent Windows.h from defining min and max macros
 #define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
 #include <windows.h>
-<<<<<<< HEAD
-#include "../emulator/adriel_2026_work/system_window.h"
-=======
 #include "../system_window.h"
->>>>>>> f27420e (Fully fixed after accidentally hard reset.)
 
 
 void SystemInitEmulator(void);

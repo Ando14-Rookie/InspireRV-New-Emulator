@@ -21,18 +21,6 @@
  **/
 static inline void WS2812BSimpleSend(
     GPIO_TypeDef * port, int pin, uint8_t * data, int len_in_bytes) {
-/**
- * @brief Emulator version of the real hardware LED driver
- *
- * @param port The GPIO port connected to your LED data line (e.g., GPIOA, GPIOC)
- * @param pin The specific pin number on that port (e.g., 4 for PC4)
- * @param data A pointer to an array of color data, typically organized in RGB format
- * @param len_in_bytes The total length of the data to send.
- *
- * For example, if you have 16 LEDs, the length should be 16 × 3 = 48 bytes
- **/
-static inline void WS2812BSimpleSend(
-    GPIO_TypeDef * port, int pin, uint8_t * data, int len_in_bytes) {
     (void)port;
     (void)pin;
     // printf("total len_in_bytes: %d", len_in_bytes);
@@ -104,5 +92,4 @@ static inline void WS2812BSimpleSend(
     printf("\n");
 }
 
-#endif
 #endif

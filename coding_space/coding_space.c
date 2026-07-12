@@ -207,15 +207,15 @@ void resultSimulation(void) {
                             printf("Playing sound F4 for %d ms\n", soundDur);
                             break;
                         case 4:
-                            soundFreq = NOTE_G5;
+                            soundFreq = NOTE_G4;
                             printf("Playing sound G4 for %d ms\n", soundDur);
                             break;
                         case 5:
-                            soundFreq = NOTE_A5;
+                            soundFreq = NOTE_A4;
                             printf("Playing sound A4 for %d ms\n", soundDur);
                             break;
                         case 6:
-                            soundFreq = NOTE_B5;
+                            soundFreq = NOTE_B4;
                             printf("Playing sound B4 for %d ms\n", soundDur);
                             break;
                         case 7:
@@ -1080,9 +1080,9 @@ void startStepSimulation(uint8_t speedVar) {
     simPenStatus = 0;
     simLineRun = 0;
     simStepsLeft = 0;
-    rVariable = 0;
-    gVariable = 0;
-    bVariable = 0;
+    // rVariable = 0;
+    // gVariable = 0;
+    // bVariable = 0;
     xVariable = 0;
     yVariable = 0;
     loopVariable = 0;
@@ -1180,6 +1180,8 @@ void resetCanvaScreen(void) {
     // Change current led_array with the real saved one
     for (int i = 0; i < NUM_LEDS; i++) {
         wholeCodeCanvas[currentCanvas][i].currentColor = offColor;
+        // Currently ON → turn OFF
+        wholeCodeCanvas[currentCanvas][i].toggleState = 0;
     }
 
     // Debug Purpose
@@ -1206,6 +1208,15 @@ void renderCodingCanvas(void) {
 
     // 3. Draw pointer last, so it is always visible
     set_color(currentposition, pointerColor);
+
+    // Debug Purpose
+    // printf("Current page: currentCanvas=%d\n", currentCanvas);
+    // for (int i = 0; i < NUM_LEDS; i++) {
+    //     printf("Now[%d] = (%d,%d,%d)\n", i,
+    //         wholeCodeCanvas[currentCanvas][i].currentColor.r,
+    //         wholeCodeCanvas[currentCanvas][i].currentColor.g,
+    //         wholeCodeCanvas[currentCanvas][i].currentColor.b);
+    // }
 
     // 4. Send to display
     WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);

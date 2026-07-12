@@ -21,7 +21,10 @@ void resetEmulatorScreen(void) {
     buttonPressed = 0;
 
     for (int i = 0; i < NUM_LEDS; i++) {
+        // reset Color
         savedColor[i] = offColor;
+        // Set the toggleState to off
+        ledCondition[i] = 0;
     }
 
     fill_color(offColor);
