@@ -46,26 +46,6 @@ void removeKey(WORD keyCode) {
     }
 }
 
-// bool is_key_pressed(WORD keyCode) {
-//     bool pressed = false;
-//     // Mutex (short for mutual exclusion) is like a bathroom door lock for your
-//     computer's
-//     // memory It ensures that only one thread can access the pressedKeys array at a
-//     time,
-//     // preventing conflicts and ensuring accurate key state tracking
-//     // lock mutex before accessing shared data
-//     pthread_mutex_lock(&keyMutex);
-//     for (int i = 0; i < pressedKeyCount; i++) {
-//         if (pressedKeys[i] == keyCode) {
-//             pressed = true;
-//             break;
-//         }
-//     }
-//     // unlock mutex after accessing shared data
-//     pthread_mutex_unlock(&keyMutex);
-//     return pressed;
-// }
-
 // Updates that list when macOS reports key down/up
 // Callback Function
 LRESULT CALLBACK WindowProc(int nCode, WPARAM wParam, LPARAM lParam) {
@@ -86,14 +66,10 @@ LRESULT CALLBACK WindowProc(int nCode, WPARAM wParam, LPARAM lParam) {
     // 1 to 9: button for coding and painting page; also to choosing LED matrix (2nd
     // input)
     // A-F: to choose LED matrix (1st input) I, J, K, L: to move between LED matrix
-    bool invalidKey =
-        !(((key >= '1' && key <= '9') || (key >= VK_NUMPAD1 && key <= VK_NUMPAD9)) ||
-        (key >= 'A' && key <= 'F') ||
-        (key >= 'I' && key <= 'L') ||
-        (key == VK_RETURN) ||
-        (key == 'C') ||
-        (key == VK_LCONTROL) ||
-        (key == VK_RCONTROL));
+    bool invalidKey = !(
+        ((key >= '1' && key <= '9') || (key >= VK_NUMPAD1 && key <= VK_NUMPAD9)) ||
+        (key >= 'A' && key <= 'F') || (key >= 'I' && key <= 'L') || (key == VK_RETURN) ||
+        (key == 'C') || (key == VK_LCONTROL) || (key == VK_RCONTROL));
 
     // printf("wParam=%lu key=%d\n", (unsigned long)wParam, key);
 
@@ -115,44 +91,29 @@ LRESULT CALLBACK WindowProc(int nCode, WPARAM wParam, LPARAM lParam) {
         // Key is pressed (down)
         case WM_KEYDOWN:
         case WM_SYSKEYDOWN:
-            // bool alreadyHeld = false;
-            // // Check the temporary storage to see if double-click occur
-            // for (int i = 0; i < pressedKeyCount; i++) {
-            //     if (pressedKeys[i] == key){ 
-            //         alreadyHeld = true; 
-            //         break; 
-            //     }
-            // }
 
-            // // Prevent double-clicking
-            // if (!alreadyHeld) {
-                addKey(key);
-                // printf("pressedKeyCount=%d key=%d\n", pressedKeyCount, key);
-                // for(int i =0; i< pressedKeyCount; i++){
-                //     printf("Key pressed: %d \n", pressedKeys[i]);
-                // }
-                // Update to trigger changes to isRunning function
-                currentKey = key;
-                // Handle the painting and coding page for each button here
-                // handleButtonFunction(pageState, key);
-            // }
+            addKey(key);
+
+            // Update to trigger changes to isRunning function
+            currentKey = key;
+
             pthread_mutex_unlock(&keyMutex);
             return 1;
-            //break;
-            
+            // break;
+
         // Key is released (up)
         case WM_KEYUP:
         case WM_SYSKEYUP:
             removeKey(key);
             printf("pressedKeyCount=%d key=%d\n", pressedKeyCount, key);
             return 1;
-            //break;
+            // break;
     }
-    
+
     pthread_mutex_unlock(&keyMutex);
 
-    //Ppasses event or message information to the next hook procedure
-    // Fallback path so the program keeps waiting for key press inputs
+    // Ppasses event or message information to the next hook procedure
+    //  Fallback path so the program keeps waiting for key press inputs
     return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
@@ -191,17 +152,4 @@ void * eventTapThread(void * arg) {
 }
 
 // Initialize the thread to listen to keyboard events
-void pthread_init() { 
-    pthread_create(&thread, NULL, eventTapThread, NULL); }
-
-// TESTING
-// int main(void) {
-//     pthread_init();
-
-//     while (1) {
-//         // Prevent high usage of CPU by sleeping for a short duration before check
-//         again Sleep(100);
-//     }
-
-//     return 0;
-// }
+void pthread_init() { pthread_create(&thread, NULL, eventTapThread, NULL); }

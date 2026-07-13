@@ -6,7 +6,12 @@
 // #include "ch32v003fun.h"
 
 #include <stdint.h>
-#include "../emulator/adriel_2026_work/system_window.h"
+
+#ifdef __APPLE__ 
+    #include "../emulator/system_mac.h"
+#elif defined(_WIN32) //For Windows OS 64-bit and 32-bit
+    #include "../emulator/adriel_2026_work/system_window.h"
+#endif
 
 // void JOY_sound(uint16_t freq, uint16_t dur) {
 //     int pin = PC3;

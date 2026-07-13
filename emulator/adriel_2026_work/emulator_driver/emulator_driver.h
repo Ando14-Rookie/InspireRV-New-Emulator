@@ -36,9 +36,13 @@ extern PageState currentPage;
 #if defined(_WIN32) || defined(_WIN64)
 #define NOMINMAX 1          // Prevent Windows.h from defining min and max macros
 #define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
-#include <windows.h>
-#include "../system_window.h"
 
+#ifdef __APPLE__ 
+    #include "../emulator/system_mac.h"
+#elif defined(_WIN32) //For Windows OS 64-bit and 32-bit
+    #include <windows.h>
+    #include "../system_window.h"
+#endif
 
 void SystemInitEmulator(void);
 void resetEmulatorScreen(void);
