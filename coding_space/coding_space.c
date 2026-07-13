@@ -132,7 +132,8 @@ void resultSimulation(void) {
 
     // Start led_array with empty space (black color)
     for (int i = 0; i < NUM_LEDS; i++) {
-        led_array[i] = offColor;
+        // led_array[i] = offColor;
+        setColorLEDScaled(i, offColor, brightnessDivisor);
     }
 
     // This will run line per line, and will not stop until all lines have been run
@@ -160,10 +161,22 @@ void resultSimulation(void) {
 
             // Run that line for the number of steps specified by zUnits
             for (uint8_t step = 0; step < zUnits; step++) {
-                led_array[simPointer] = simPenStatus ? simPenColor : clearColor;
+                // led_array[simPointer] = simPenStatus ? simPenColor : clearColor;
+                if (simPenStatus) {
+                    setColorLEDScaled(simPointer, simPenColor, brightnessDivisor);
+                }
+                else {
+                    setColorLEDScaled(simPointer, clearColor, brightnessDivisor);
+                }
                 movePointerByUnits(&simPointer, direction);
             }
-            led_array[simPointer] = &simPenRGB ? simPenColor : clearColor;
+            // led_array[simPointer] = &simPenRGB ? simPenColor : clearColor;
+            if (simPenStatus) { //Prev Condition: &simPenRGB
+                setColorLEDScaled(simPointer, simPenColor, brightnessDivisor);
+            }
+            else {
+                setColorLEDScaled(simPointer, clearColor, brightnessDivisor);
+            }
         }
         else if (opGrpLineStorage[lineRun] == OPCODE_PEN) {
             // Check that specific line
@@ -264,7 +277,13 @@ void resultSimulation(void) {
                     // Check if pointer is hidden/shown
                     if (simPenStatus == 1) {
                         // If shown, set the color of simPenRGB to the pointer color
-                        led_array[simPointer] = &simPenRGB ? simPenColor : clearColor;
+                        // led_array[simPointer] = &simPenRGB ? simPenColor : clearColor;
+                        if (simPenStatus == 1) { //Prev Condition: &simPenRGB
+                            setColorLEDScaled(simPointer, simPenColor, brightnessDivisor);
+                        }
+                        else {
+                            setColorLEDScaled(simPointer, clearColor, brightnessDivisor);
+                        }
                     }
                     // Change the pointer location based on the varLineStorage value
                     switch (varLineStorage[lineRun]) {
@@ -315,7 +334,8 @@ void resultSimulation(void) {
 
                         // Change the led_array temporarily
                         for (int i = 0; i < NUM_LEDS; i++) {
-                            led_array[i] = fillScreenColor;
+                            // led_array[i] = fillScreenColor;
+                            setColorLEDScaled(i, fillScreenColor, brightnessDivisor);
                         }
 
                         printf("Fill Screen Color R: %d, G: %d, B: %d\n",
@@ -748,7 +768,13 @@ void tickStepSimulation(void) {
                     // Check if pointer is hidden/shown
                     if (simPenStatus == 1) {
                         // If shown, set the color of simPenRGB to the pointer color
-                        led_array[simPointer] = &simPenRGB ? simPenColor : clearColor;
+                        // led_array[simPointer] = &simPenRGB ? simPenColor : clearColor;
+                        if (simPenStatus) { //Prev Condition: &simPenRGB
+                            setColorLEDScaled(simPointer, simPenColor, brightnessDivisor);
+                        }
+                        else {
+                            setColorLEDScaled(simPointer, clearColor, brightnessDivisor);
+                        }
                     }
                     // Change the pointer location based on the varLineStorage value
                     switch (varLineStorage[simLineRun]) {
@@ -801,7 +827,8 @@ void tickStepSimulation(void) {
 
                         // Change the led_array temporarily
                         for (int i = 0; i < NUM_LEDS; i++) {
-                            led_array[i] = fillScreenColor;
+                            // led_array[i] = fillScreenColor;
+                            setColorLEDScaled(i, fillScreenColor, brightnessDivisor);
                         }
 
                         printf("Fill Screen Color R: %d, G: %d, B: %d\n",
@@ -1050,7 +1077,13 @@ void tickStepSimulation(void) {
         return;
 
     // Store what color it is in that specific LED
-    led_array[simPointer] = simPenStatus ? simPenColor : clearColor;
+    // led_array[simPointer] = simPenStatus ? simPenColor : clearColor;
+    if (simPenStatus) {
+        setColorLEDScaled(simPointer, simPenColor, brightnessDivisor);
+    }
+    else {
+        setColorLEDScaled(simPointer, clearColor, brightnessDivisor);
+    }
     // Move the pointer by one unit in the specified direction
     movePointerByUnits(&simPointer, simDirection);
 
@@ -1105,14 +1138,16 @@ void startStepSimulation(uint8_t speedVar) {
     Delay_Ms(100);
     clearScreen();
 
-    for (int i = 0; i < NUM_LEDS; i++)
-        led_array[i] = offColor;
+    for (int i = 0; i < NUM_LEDS; i++) {
+        // led_array[i] = offColor;
+        setColorLEDScaled(i, offColor, brightnessDivisor);
+    }
 
     // Debugging Purpose
     // printf("START: r=%d g=%d b=%d x=%d y=%d loop=%d jumpVar=%d ptr=%d line=%d\n",
     //    rVariable, gVariable, bVariable, xVariable, yVariable,
     //    loopVariable, jumpVar, simPointer, simLineRun);
-    
+
     simState = SIM_RUNNING;
     printf("Starting step simulation...\n");
 }
@@ -1198,10 +1233,14 @@ void resetCanvaScreen(void) {
 }
 
 void renderCodingCanvas(void) {
-    // 1. Draw real coding canvas data first
+    printf("occur BEFORRE rendercoding canvas");
+    // 1. Draw led_iarray with real coding canvas data adjusted with brightness level
     for (int i = 0; i < NUM_LEDS; i++) {
-        led_array[i] = wholeCodeCanvas[currentCanvas][i].currentColor;
+        // Copy each wholeCodeCanvas color to led_array LED
+        setColorLEDScaled(
+            i, wholeCodeCanvas[currentCanvas][i].currentColor, brightnessDivisor);
     }
+    printf("occur in rendercoding canvas");
 
     // 2. Draw row 0 page indicators on top
     renderRow0();

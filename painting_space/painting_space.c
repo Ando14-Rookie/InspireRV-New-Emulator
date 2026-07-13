@@ -8,6 +8,10 @@ static inline bool color_equals(color_t a, color_t b);
 // Definition
 color_t foregroundColor = {100, 255, 100}; // Green
 color_t backgroundColor = {100, 100, 255}; // Blue
+
+color_t scaledForeground;
+color_t scaledBackground;
+
 color_t tempColor = {0, 0, 0}; // Container for bucket fill feature
 color_t slotColor = {100, 100, 255}; // Also blue
 color_t returnColor = {255, 0, 0};  // red 
@@ -15,6 +19,11 @@ color_t returnColor = {255, 0, 0};  // red
 // Will be used in this file only
 // true = foreground, false = background
 bool pickingForeground = true;
+
+void initScaledForeBackColors(void) {
+    scaledForeground = initColorScaled(foregroundColor, brightnessDivisor);
+    scaledBackground = initColorScaled(backgroundColor, brightnessDivisor);
+}
 
 void bucketFill(int startIndex, color_t fillColor) {
     // Get the color of the real LED color in that position
@@ -126,8 +135,10 @@ void fullBucketFillLogic(void) {
                     selected.r, selected.b);
 
                 // Restore canvas
-                for (int i = 0; i < NUM_LEDS; i++)
-                    set_color(i, savedColor[i]);
+                for (int i = 0; i < NUM_LEDS; i++){
+                    // set_color(i, savedColor[i]);
+                    setColorLEDScaled(i, savedColor[i], brightnessDivisor);
+                }
                 WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
             }
 
@@ -165,8 +176,10 @@ void fullBucketFillLogic(void) {
                 bucketFill(currentposition, tempColor);
 
                 // Show updated canvas
-                for (int i = 0; i < NUM_LEDS; i++)
-                    set_color(i, savedColor[i]);
+                for (int i = 0; i < NUM_LEDS; i++){
+                    // set_color(i, savedColor[i]);
+                    setColorLEDScaled(i, savedColor[i], brightnessDivisor);
+                }
                 WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
 
                 currentPage = PAINTING_SPACE;
@@ -177,8 +190,10 @@ void fullBucketFillLogic(void) {
 
             // Draw canvas + pointer while navigating fill position
             if (buttonPressed == 1) {
-                for (int i = 0; i < NUM_LEDS; i++)
-                    set_color(i, savedColor[i]);
+                for (int i = 0; i < NUM_LEDS; i++){
+                    // set_color(i, savedColor[i]);
+                    setColorLEDScaled(i, savedColor[i], brightnessDivisor);
+                }
                 set_color(currentposition, pointerColor);
                 WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
                 buttonPressed = 0;
@@ -249,7 +264,8 @@ void chooseColorForeBack(void) {
             }
             // Return led_array to the correct saved color array
             for (int i = 0; i < NUM_LEDS; i++) {
-                set_color(i, savedColor[i]);
+                // set_color(i, savedColor[i]);
+                setColorLEDScaled(i, savedColor[i], brightnessDivisor);
             }
             WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
             // Change the pagestate back to PAINTING_SPACE
@@ -316,11 +332,11 @@ void initColorfulMap(void) {
 }
 
 void updateForegroundColor(color_t foregroundLEDColor){
-    foregroundColor = (color_t){foregroundLEDColor.g, foregroundLEDColor.r, foregroundLEDColor.b};
+    scaledForeground = (color_t){foregroundLEDColor.g, foregroundLEDColor.r, foregroundLEDColor.b};
 }
 
 void updateBackgroundColor(color_t backgroundLEDColor){
-    backgroundColor = (color_t){backgroundLEDColor.g, backgroundLEDColor.r, backgroundLEDColor.b};
+    scaledBackground = (color_t){backgroundLEDColor.g, backgroundLEDColor.r, backgroundLEDColor.b};
 }
 
 void updateLEDColor(uint8_t led){
@@ -330,14 +346,16 @@ void updateLEDColor(uint8_t led){
     {
     case 0:
         // printf("Case 0 on LED %d", led);
-        // Set the LED to be the new foreground color
+        // Set the LED to be the normal foreground color first so savedColor can save it later
         set_color(led, foregroundColor);
+        // printf("Scaled Foreground is %d, %d, %d \n", scaledForeground.r, scaledForeground.g, scaledForeground.b);
         ledCondition[led] = 1;
         break;
     case 1:
         // printf("Case 1 on LED %d", led);
-        // Set the LED to be the new background color
+        // Set the LED to be the the normal foreground color first so savedColor can save it later
         set_color(led, backgroundColor);
+        // printf("Scaled Background is %d, %d, %d \n", scaledBackground.r, scaledBackground.g, scaledBackground.b);
         ledCondition[led] = 2;
         break;
     case 2:

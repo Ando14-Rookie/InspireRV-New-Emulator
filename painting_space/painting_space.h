@@ -13,6 +13,8 @@
 // Default LED color (can be changed)
 extern color_t foregroundColor; // Green
 extern color_t backgroundColor; // Blue
+extern color_t scaledForeground; //Bridghtness scaled
+extern color_t scaledBackground; //Bridghtness caled
 extern color_t tempColor; // Container for bucket fill feature
 extern color_t slotColor; 
 extern color_t returnColor; 
@@ -25,6 +27,10 @@ extern color_t colorfulMap[NUM_BUTTONS];
 // Check if forgeround color is being used
 extern bool pickingForeground;
 
+/** 
+ * @brief Initialize both the scaled foreground and background color
+**/
+void initScaledForeBackColors(void);
 
 /** 
  * @brief Create smooth, high-resolution transitions between LED color and brightness

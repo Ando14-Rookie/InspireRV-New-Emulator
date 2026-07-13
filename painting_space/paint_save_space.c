@@ -342,12 +342,18 @@ void renderSaveLoadSlotScreen(void) {
                                 break;
                         }
 
+                        // Print the cursor/selection indicator sits on this screen)
                         if (val == 1)
-                            set_color(idx, pointerColor);
+                            // set_color(idx, pointerColor);
+                            setColorLEDScaled(idx, pointerColor, brightnessDivisor);
+                        // Print the "go back" region of the icon
                         else if (val == 2)
-                            set_color(idx, returnColor);
+                            // set_color(idx, returnColor);
+                            setColorLEDScaled(idx, returnColor, brightnessDivisor);
+                        // Print the "confirm" region of the icon
                         else if (val == 3)
-                            set_color(idx, confirmColor);
+                            // set_color(idx, confirmColor);
+                            setColorLEDScaled(idx, confirmColor, brightnessDivisor);
                     }
                 }
                 // Print the new emulator screen for confirmation page
@@ -399,7 +405,7 @@ void renderSaveLoadSlotScreen(void) {
     // Draw canvas + pointer to the real one; Occur only when exiting
     if (slotChosen) {
         for (int i = 0; i < NUM_LEDS; i++)
-            set_color(i, savedColor[i]);
+            setColorLEDScaled(i, savedColor[i], brightnessDivisor);
         set_color(currentposition, pointerColor);
         WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
         buttonPressed = 0;
@@ -424,7 +430,8 @@ static inline void createSlotSelectionScreen(int row) {
             for (int c = 0; c < 8; c++) {
                 int idx = r * 8 + c;
                 if (saveLogo[r][c] == 1) {
-                    set_color(idx, foregroundColor);
+                    // set_color(idx, scaledForeground);
+                    setColorLEDScaled(idx, foregroundColor, brightnessDivisor);
                 }
             }
         }
@@ -437,7 +444,8 @@ static inline void createSlotSelectionScreen(int row) {
                 int ledCol = 7 - c; // flip col (right-to-left)
                 int idx = ledRow * 8 + ledCol;
                 if (loadLogo[r][c] == 1) {
-                    set_color(idx, foregroundColor);
+                    // set_color(idx, scaledForeground);
+                    setColorLEDScaled(idx, foregroundColor, brightnessDivisor);
                 }
             }
         }
@@ -448,7 +456,8 @@ static inline void createSlotSelectionScreen(int row) {
         int col = 7 - slot;
         int idx = row * 8 + col;
 
-        set_color(idx, slotColor);
+        // set_color(idx, slotColor);
+        setColorLEDScaled(idx, slotColor, brightnessDivisor);
     }
 
     WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);

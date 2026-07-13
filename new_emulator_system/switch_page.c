@@ -10,7 +10,25 @@
 int main() {
     //Instansiate thread for listening to the 9 buttons
     pthread_init();
+
+    // Discard any residual keystrokes from launching the program
+    Delay_Ms(300);
+    // Lock the thread from receiving any input
+    pthread_mutex_lock(&keyMutex);
+
+    // Clear whatever got captured during launch
+    pressedKeyCount = 0;      
+    currentKey = 0;
+    // Allow thread to take input
+    pthread_mutex_unlock(&keyMutex);
+
+    // Ensure that the button state doesn't receive input
+    checkNineButton();
+    updateNineButton();
     
+    // Initialize the foreground and background color
+    initScaledForeBackColors();
+
     printf("Emulator started\n");
     // forces the C library to immediately write any data stored in the stdout (standard output) stream buffer to the actual console
     fflush(stdout);

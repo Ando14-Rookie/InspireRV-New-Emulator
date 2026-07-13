@@ -25,7 +25,7 @@
 #endif
 
 #ifdef __APPLE__
-    #include "system_mac.h"
+    #include "../emulator/adriel_2026_work/system_mac.h"
 #elif defined(_WIN32) //For Windows OS 64-bit and 32-bit
     #include "../emulator/adriel_2026_work/system_window.h"
 #endif

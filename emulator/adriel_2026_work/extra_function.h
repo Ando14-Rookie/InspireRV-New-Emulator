@@ -8,6 +8,7 @@
 #include "../../coding_space/code_save_space.h"
 #include "../../coding_space/coding_space.h" 
 #include "./emulator_driver/emulator_driver.h"
+#include "../../emulator-screen/brightness_control.h"
 #include "system_window.h"
 
 #include <pthread.h>
@@ -18,6 +19,9 @@
 // #include "../emulator-screen/led_matrix_screen.h"
 
 extern int currentKey;
+
+/// @brief Determine what your previous page state is
+extern PageState prevPageState;
 
 /**
  * @brief Handle the key pressed logic for the 9 buttons of the InspireRV

@@ -51,7 +51,8 @@ SRCS    = switch_page.c \
 		../painting_space/painting_space.c \
 		../painting_space/paint_save_space.c \
 		../coding_space/code_save_space.c \
-		../coding_space/coding_space.c
+		../coding_space/coding_space.c \
+		../emulator-screen/brightness_control.c
 
 # list of object files generated from source files
 OBJS    = switch_page.o \
@@ -66,7 +67,8 @@ OBJS    = switch_page.o \
 		painting_space.o \
 		paint_save_space.o \
 		code_save_space.o \
-		coding_space.o
+		coding_space.o \
+		brightness_control.o
 
 # ─── Default rule: build the executable ─────────────────────────────
 all: $(TARGET)

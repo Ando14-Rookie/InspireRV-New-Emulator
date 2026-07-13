@@ -1,7 +1,9 @@
 #include "colors.h"
 
-const color_t onColorGreen = {100, 255, 100}; // Green
-const color_t onColorBlue = {100, 100, 255};  // Blue
+color_t onColorGreen = {100, 255, 100}; // Green
+color_t onColorBlue = {100, 100, 255};  // Blue
+
+const color_t fixedColorGreen = {100, 255, 100}; // Green
 const color_t offColor = {0, 0, 0};           // Black
 const color_t pointerColor = {255, 188, 100}; // Orange
 const color_t solidColorRed = {255, 0, 0}; // Solid Red
@@ -29,12 +31,37 @@ color_t colorfulMap[NUM_BUTTONS] = {};
 
 const uint16_t num_colors = NUM_LEDS;
 
+void setColorLEDScaled(uint8_t index, color_t color, uint8_t divisor) {
+    // printf("Brightness by global var is %d\n", divisor);
+    color_t scaled = {.r = 0, .g = 0, .b=0};
+    scaled.r = color.r / divisor;
+    scaled.g = color.g / divisor;
+    scaled.b = color.b / divisor;
+    // printf("Before led_array: %d, with scaled: %d \n", led_array[index], scaled);
+    led_array[index] = scaled;
+    // printf("After led_array: %d, with scaled: %d \n", led_array[index], scaled);
+}
+
+// void changeColorScaled(color_t *storageArray, uint8_t index, color_t newColor, uint8_t divisor){
+//     storageArray[index].r = newColor.r / divisor;
+//     storageArray[index].g = newColor.g/ divisor;
+//     storageArray[index].b = newColor.b/ divisor;
+// }
+
+color_t initColorScaled(color_t color, uint8_t divisor){
+    color_t scaled;
+    scaled.r = color.r / divisor;
+    scaled.g = color.g / divisor;
+    scaled.b = color.b / divisor;
+
+    return scaled;
+}
+
 // To scale brightness down without changing the basic color
 color_t color_divide(color_t color, uint8_t divider) {
     return (color_t){color.r / divider, color.g / divider, color.b / divider};
 }
 
-// // Set Color
 void set_color(uint8_t led, color_t color) {
     uint8_t divider = 1; //TODO: Meant for brightness control
     //led_array has data type of struct "color_t"

@@ -3,7 +3,7 @@
 
 // Joypad calibration values
 // Measured ADC targets for those positions
-#ifndef BUTTONS_H
+#ifndef BUTTONS_Hjl
 
 #ifndef NUM_BUTTONS 
 // Calculate directly from the matrix layout to avoid macro collisions

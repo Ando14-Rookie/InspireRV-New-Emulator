@@ -9,7 +9,7 @@
 int currentKey = 0;
 
 // Will be used in this file only
-static PageState prevPageState = PAINTING_SPACE;
+PageState prevPageState = PAINTING_SPACE;
 
 /*
     Key just pressed → cur=true, prev=false → move once ✓
@@ -52,7 +52,13 @@ void handleButtonFunction(void) {
         }
         if (BTN_JUST_PRESSED(BTN_2)) {
             printf("You selected 'BRIGTHNESS CONTROL'.\n");
-            printf("IN PROGRESS'.\n");
+            printf("Now page state is %d\n", currentPage);
+            // Remember previous page: CODING_SPACE
+            prevPageState = currentPage;
+            // Change pageState to BRIGHTNESS_CONTROL
+            currentPage = BRIGHTNESS_CONTROL;
+            // Will print the page ID: 13
+            printf("Now page state is %d\n", currentPage);
         }
         if (BTN_JUST_PRESSED(BTN_3)) {
             printf("You selected 'SAVE 9 TO RESET AFTER SAVED'.\n");
@@ -128,6 +134,13 @@ void handleButtonFunction(void) {
             }
             else if (BTN_JUST_PRESSED(BTN_2)) {
                 printf("You selected 'BRIGTHNESS CONTROL'.\n");
+                printf("Now page state is %d\n", currentPage);
+                // Remember previous page: CODING_SPACE
+                prevPageState = currentPage;
+                // Change pageState to BRIGHTNESS_CONTROL
+                currentPage = BRIGHTNESS_CONTROL;
+                // Will print the page ID: 13
+                printf("Now page state is %d\n", currentPage);
             }
             else if (BTN_JUST_PRESSED(BTN_3)) {
                 printf("You selected 'SAVE 9 TO RESET AFTER SAVED'.\n");
@@ -162,12 +175,13 @@ void handleButtonFunction(void) {
             }
         }
         // Button 4 only work when simulation is running
-        else if(simState == SIM_RUNNING && BTN_JUST_PRESSED(BTN_4)){
+        else if (simState == SIM_RUNNING && BTN_JUST_PRESSED(BTN_4)) {
             printf("You selected 'RETURN TO PROGRAMMING SPACE'.\n");
             stopStepSimulation();
         }
-        else{
-            printf("Key press is not allowed during simulation, press '4' to stop simulation.\n");
+        else {
+            printf("Key press is not allowed during simulation, press '4' to stop "
+                   "simulation.\n");
         }
     }
     // Occur when user want to choose foreground or background color
@@ -186,6 +200,10 @@ void handleButtonFunction(void) {
 
     if (currentPage == CODING_SAVE_SLOT || currentPage == CODING_LOAD_SLOT) {
         saveOrLoadCodeToSlot();
+    }
+
+    if (currentPage == BRIGHTNESS_CONTROL) {
+        renderBrightnessSelectScreen();
     }
 
     // Update the previous data to check if button actually being press, just press or

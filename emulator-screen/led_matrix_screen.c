@@ -69,14 +69,15 @@ void makeEmulatorScreen(color_t * arr) {
                     printf("PAINTING_SPACE -- You have confirmed'.\n");
                     // Change the led_array and ledCondition in this position
                     updateLEDColor(currentposition);
+                    // Snapshot it first before adjusting led_array based on brightness value
                     savedColor[currentposition] =
-                        led_array[currentposition]; // snapshot it
+                        led_array[currentposition]; 
                 }
                 else if (currentPage == CODING_SPACE) {
                     printf("CODING_SPACE -- You have confirmed'.\n");
                     // Update the LED real data
                     updateCodeLED(currentposition);
-                    // Update led_array, then print again the full coding canvas
+                    // Handles somewhere else: Update led_array, then print again the full coding canvas
                 }
                 buttonPressed = 1;
             }
@@ -84,13 +85,15 @@ void makeEmulatorScreen(color_t * arr) {
 
         // Save current state as previous for next tick
         updateMoveButton();
+        // updateAllButtons();
 
         // Only works after user move the pointer one by one
         if (buttonPressed == 1) {
             if (currentPage == PAINTING_SPACE) {
                 // Restore all LEDs from savedColors first (real color)
+                // Adjusting led_array based on brightness value
                 for (int i = 0; i < NUM_LEDS; i++) {
-                    set_color(i, savedColor[i]);
+                    setColorLEDScaled(i, savedColor[i], brightnessDivisor);
                 }
                 // Draw pointer ON TOP visually (only effect led_array), doesn't touch
                 // savedColor (real saved data)
