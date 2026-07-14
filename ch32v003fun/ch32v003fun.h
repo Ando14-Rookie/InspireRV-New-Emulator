@@ -118,31 +118,31 @@
 #endif
 
 #ifndef HSE_VALUE
-	#if defined(CH32V003)
+	#ifdef CH32V003
 		#define HSE_VALUE                 (24000000) // Value of the External oscillator in Hz, default
-	#elif defined(CH32V10x)
+	#elifdef CH32V10x
 		#define HSE_VALUE				  (8000000)
-	#elif defined(CH32V20x)
+	#elifdef CH32V20x
 		#if defined(CH32V20x_D8) || defined(CH32V20x_D8W)
 		#define HSE_VALUE    			  (32000000)
 		#else
 		#define HSE_VALUE    			  (8000000)
 		#endif
-	#elif defined(CH32V30x)
+	#elifdef CH32V30x
 		#define HSE_VALUE				  (8000000)
 	#endif
 #endif
 
 #ifndef HSI_VALUE
-	#if defined(CH32V003)
+	#ifdef CH32V003
 		#define HSI_VALUE                 (24000000) // Value of the Internal oscillator in Hz, default.
-	#elif defined(CH32X03x)
+	#elifdef CH32X03x
 		#define HSI_VALUE				  (48000000)
-	#elif defined(CH32V10x)
+	#elifdef CH32V10x
 		#define HSI_VALUE				  (8000000)
-	#elif defined(CH32V20x)
+	#elifdef CH32V20x
 		#define HSI_VALUE    			  (8000000)
-	#elif defined(CH32V30x)
+	#elifdef CH32V30x
 		#define HSI_VALUE				  (8000000)
 	#endif
 #endif

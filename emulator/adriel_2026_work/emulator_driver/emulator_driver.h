@@ -44,8 +44,8 @@ extern PageState currentPage;
     #include "../system_window.h"
 #endif
 
-void SystemInitEmulator(void);
-void resetEmulatorScreen(void);
+extern void SystemInitEmulator(void);
+extern void resetEmulatorScreen(void);
 
 #define SystemInit() SystemInitEmulator()
 #define Delay_Ms(milliseconds) Sleep(milliseconds)

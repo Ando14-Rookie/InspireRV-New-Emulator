@@ -8,11 +8,13 @@
 //#include "./data/fonts.h"
 #include "./data/music.h"
 #include "./ch32v003fun/ws2812b_simple.h"
+#include "./ch32v003fun/ch32v003fun.h"
 
 //Storage defines
 #define EEPROM_ADDR 0x53 // obtained from i2c_scan(), before shifting by 1 bit
 #define page_size 64    // range of byte that stores status of page[x]
 #define opcode_size 28    // range of byte that stores opcodes
+#define NUM_LEDS 64
 #define init_status_addr_begin 0
 #define init_status_addr_end 7
 #define init_status_reg_size (init_status_addr_end - init_status_addr_begin + 1) // size  = 8

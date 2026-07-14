@@ -1,6 +1,6 @@
 # ─── Builds the PC-side emulator (switch_page.exe) ──────────────────
 CC      = gcc # holds the compiler name
-CFLAGS  = -Wall -Wextra -g # define how to compile (warnings + debug info)
+CFLAGS  = -Wall -Wextra -g -pthread # define how to compile (warnings + debug info)
  # tells the compiler where to find header files (for system_window.h)
 INCLUDES = -I"../emulator/adriel_2026_work" \
 			-I"../emulator-screen" \
