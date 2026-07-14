@@ -2,7 +2,7 @@
 
 #ifndef WS2812B_SIMPLE_H
 #define WS2812B_SIMPLE_H
-#include "..\data\buttons.h"
+#include "../data/buttons.h"
 #include "ch32v003fun.h"
 
 #include <stdio.h>

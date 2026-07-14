@@ -6,11 +6,44 @@
 // #include "ch32v003fun.h"
 
 #include <stdint.h>
+#include "../emulator/adriel_2026_work/system_window_mac.h"
 
-#ifdef __APPLE__ 
-    #include "../emulator/system_mac.h"
-#elif defined(_WIN32) //For Windows OS 64-bit and 32-bit
-    #include "../emulator/adriel_2026_work/system_window.h"
+#if defined(_WIN32) || defined(_WIN64)
+    #include <windows.h>
+#elif defined(__APPLE__)
+    #include <AudioUnit/AudioUnit.h>
+    #include <unistd.h>
+
+    // A simple container to pass tone properties to the macOS audio thread
+    typedef struct {
+        double targetFrequency;
+        double sampleRate;
+        uint32_t frameCounter;
+    } MacToneData;
+
+    // The rendering callback that generates the raw sound wave on macOS
+    static OSStatus ToneRenderCallback(
+        void *inRefCon, 
+        AudioUnitRenderActionFlags *ioActionFlags, 
+        const AudioTimeStamp *inTimeStamp, 
+        UInt32 inBusNumber, 
+        UInt32 inNumberFrames, 
+        AudioBufferList *ioData) 
+    {
+        (void)ioActionFlags; (void)inTimeStamp; (void)inBusNumber;
+        MacToneData *tone = (MacToneData *)inRefCon;
+        Float32 *buffer = (Float32 *)ioData->mBuffers[0].mData;
+        
+        for (UInt32 i = 0; i < inNumberFrames; i++) {
+            // Generate a basic square wave based on the frequency
+            double period = tone->sampleRate / tone->targetFrequency;
+            double halfPeriod = period / 2.0;
+            double position = fmod((double)tone->frameCounter++, period);
+            
+            buffer[i] = (position < halfPeriod) ? 0.25f : -0.25f; // Volume level at 25%
+        }
+        return noErr;
+    }
 #endif
 
 // void JOY_sound(uint16_t freq, uint16_t dur) {

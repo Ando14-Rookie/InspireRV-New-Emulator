@@ -10,11 +10,7 @@
 #include "./emulator_driver/emulator_driver.h"
 #include "../../emulator-screen/brightness_control.h"
 
-#ifdef __APPLE__ 
-    #include "../emulator/system_mac.h"
-#elif defined(_WIN32) //For Windows OS 64-bit and 32-bit
-    #include "../emulator/adriel_2026_work/system_window.h"
-#endif
+#include "../emulator/adriel_2026_work/system_window_mac.h"
 
 #include <pthread.h>
 #include <stdbool.h> // Required for the bool type, true, and false

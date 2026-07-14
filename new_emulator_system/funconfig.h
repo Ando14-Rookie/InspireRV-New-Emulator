@@ -16,13 +16,7 @@
     #define CH32V003J4M6_USE_PD6_AS_UART_TX
     #define FUNCONF_SYSTICK_USE_HCLK 1
 
-    #ifdef __APPLE__ 
-        #include "../emulator/system_mac.h"
-    #elif defined(_WIN32) //For Windows OS 64-bit and 32-bit
-        #include <windows.h>
-        #include "../emulator/adriel_2026_work/system_window.h"
-    #endif
-
+    #include "../emulator/adriel_2026_work/system_window_mac.h"
     #include <stdbool.h>
     #include <stdlib.h>
     #include "../data/buttons.h"

@@ -6,6 +6,9 @@
 // Need to compile and link C file, not header file
 //How to run file: gcc switch_page.c "../emulator/adriel's_2026_work/system_window.c" -o switch_page.exe -lpthread
 
+// Add function prototype
+// void pthread_init(void);
+
 // Start custom emulator terminal for testing
 int main() {
     //Instansiate thread for listening to the 9 buttons

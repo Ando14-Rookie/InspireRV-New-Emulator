@@ -28,62 +28,82 @@ extern PageState currentPage;
 
 // #include "..\new_emulator_system\funconfig.h"
 // #include "..\ch32v003fun\ws2812b_simple.h"
+// Include the new unified cross-platform windowing/input library
+#include "../system_window_mac.h"
 #include "../../emulator/ws2812b_simple.h"
 #include <stdbool.h>
 #include <stdlib.h>
 #include "../../emulator-screen/led_matrix_screen.h"
 
+// ==========================================================
+// 1. WINDOWS-SPECIFIC SETUP
+// ==========================================================
 #if defined(_WIN32) || defined(_WIN64)
 #define NOMINMAX 1          // Prevent Windows.h from defining min and max macros
 #define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
-
-#ifdef __APPLE__ 
-    #include "../emulator/system_mac.h"
-#elif defined(_WIN32) //For Windows OS 64-bit and 32-bit
-    #include <windows.h>
-    #include "../system_window.h"
-#endif
-
-void SystemInitEmulator(void);
-void resetEmulatorScreen(void);
 
 #define SystemInit() SystemInitEmulator()
 #define Delay_Ms(milliseconds) Sleep(milliseconds)
 #define Delay_Us(microseconds) Sleep((microseconds) / 1000)
 
-// Replaces everry instance of JOY_###_pressed() with the corresponding key press
-//  Code Space & Paint Space: load
-#define JOY_first_pressed() is_key_pressed('1')
-// Code Space & Paint Space: brightness control
-#define JOY_second_pressed() !is_key_pressed('2')
-// Code Space & Paint Space: press to save or after press 3, u press 9 to reset save
-#define JOY_third_pressed() is_key_pressed('3')
-// Code Space: return to proramming space ;Paint Space: color for foreground
-#define JOY_fourth_pressed() is_key_pressed('4')
-// Code Space: immediate code result ;Paint Space: None
-#define JOY_fifth_pressed() is_key_pressed('5')
-// Code Space: run simulation ;Paint Space: color for background
-#define JOY_sixth_pressed() is_key_pressed('6')
-// Code Space: clear ;Paint Space: to coding space
-#define JOY_seventh_pressed() is_key_pressed('7')
-// Code Space: clear current page ;Paint Space: bucket fill
-#define JOY_eigth_pressed() is_key_pressed('8')
-// Code Space: go to painting space ;Paint Space: clear screen
-#define JOY_ninth_pressed() is_key_pressed('9')
+// ==========================================================
+// 2. MACOS-SPECIFIC SETUP
+// ==========================================================
+#elif defined(__APPLE__)
+#include <unistd.h>
 
-// Replaces everry instance of JOY_###_pressed() with the corresponding key press
-#define JOY_enter_pressed() is_key_pressed(Enter_Key)
-#define JOY_up_pressed() is_key_pressed('I')
-#define JOY_down_pressed() is_key_pressed('K')
-#define JOY_left_pressed() is_key_pressed('J')
-#define JOY_right_pressed() is_key_pressed('L')
+#define SystemInit() pthread_init()
+#define Delay_Ms(milliseconds) usleep((milliseconds) * 1000)
+#define Delay_Us(microseconds) usleep(microseconds)
+
+#endif // Platform selection ending
+
+
+// ==========================================================
+// 3. CROSS-PLATFORM INPUT & JOYSTICK MACROS
+// ==========================================================
+
+// Replaces every instance of JOY_###_pressed() with the corresponding key press
+// Uses the unified, cross-platform key macros defined in system_window_mac.h
+
+extern void SystemInitEmulator(void);
+extern void resetEmulatorScreen(void);
 
 /**
  * @brief Get the key that is being pressed
  * 
+ * Argument type KeyCode_t is either WORD or CGKeyCode
 **/
-bool is_key_pressed(char capitalkey);
+extern bool is_key_pressed(KeyCode_t capitalkey);
 
+//  Code Space & Paint Space: load
+#define JOY_first_pressed() is_key_pressed(_1_Key)
+// Code Space & Paint Space: brightness control
+#define JOY_second_pressed() !is_key_pressed(_2_Key)
+// Code Space & Paint Space: press to save or after press 3, u press 9 to reset save
+#define JOY_third_pressed() is_key_pressed(_3_Key)
+// Code Space: return to proramming space ;Paint Space: color for foreground
+#define JOY_fourth_pressed() is_key_pressed(_4_Key)
+// Code Space: immediate code result ;Paint Space: None
+#define JOY_fifth_pressed() is_key_pressed(_5_Key)
+// Code Space: run simulation ;Paint Space: color for background
+#define JOY_sixth_pressed() is_key_pressed(_6_Key)
+// Code Space: clear ;Paint Space: to coding space
+#define JOY_seventh_pressed() is_key_pressed(_7_Key)
+// Code Space: clear current page ;Paint Space: bucket fill
+#define JOY_eigth_pressed() is_key_pressed(_8_Key)
+// Code Space: go to painting space ;Paint Space: clear screen
+#define JOY_ninth_pressed() is_key_pressed(_9_Key)
+
+// Replaces every instance of JOY_###_pressed() with the corresponding key press
+#define JOY_enter_pressed() is_key_pressed(Enter_Key)
+#define JOY_up_pressed() is_key_pressed(I_Key)
+#define JOY_down_pressed() is_key_pressed(K_Key)
+#define JOY_left_pressed() is_key_pressed(J_Key)
+#define JOY_right_pressed() is_key_pressed(L_Key)
+
+
+#if defined(_WIN32) || defined(_WIN64)
 // static: make function only visible in this file; 
 // inline: suggest compiler to replace function call with actual code to reduce overhead
 /**
@@ -95,6 +115,7 @@ bool is_key_pressed(char capitalkey);
  * 
 **/
 SHORT getKeyPressed(void);
+#endif
 
 /**
  * @brief Watches the keyboard, waits for a 2-character input like `A0`, `AF`, `C7`, or `D3`
@@ -104,23 +125,6 @@ SHORT getKeyPressed(void);
  * 
 **/
 uint16_t ADC_read(void);
-
-#elif defined(__APPLE__)
-#include "system_mac.h"
-#include <unistd.h>
-
-#define SystemInit() pthread_init()
-#define Delay_Ms(milliseconds) usleep((milliseconds) * 1000)
-#define Delay_Us(microseconds) usleep(microseconds)
-#define JOY_up_pressed() is_key_pressed(I_Key)
-#define JOY_down_pressed() is_key_pressed(K_Key)
-#define JOY_left_pressed() is_key_pressed(J_Key)
-#define JOY_right_pressed() is_key_pressed(L_Key)
-#define JOY_enter_pressed() is_key_pressed(Enter_Key)
-
-uint16_t ADC_read(void);
-
-#endif // Check Window/MacOS
 
 #define JOY_pad_pressed()                                                                \
     (JOY_up_pressed() || JOY_down_pressed() || JOY_left_pressed() || JOY_right_pressed())
@@ -154,4 +158,4 @@ static inline uint16_t ADC_read_smallboard(void) { return ADC_read(); }
 
 #define matrix_pressed_two() matrix_pressed(ADC_read)
 
-#endif //Header guard ending for emulator_driver.h
+#endif // Header guard ending for emulator_driver.h

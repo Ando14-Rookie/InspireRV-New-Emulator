@@ -5,7 +5,7 @@
 // Measured ADC targets for those positions
 #ifndef BUTTONS_Hjl
 
-#ifndef NUM_BUTTONS 
+#ifndef NUM_BUTTONS
 // Calculate directly from the matrix layout to avoid macro collisions
 #define NUM_BUTTONS (HORIZONTAL_BUTTONS * VERTICAL_BUTTONS)
 #define NUM_LEDS NUM_BUTTONS
@@ -23,13 +23,14 @@
 #define JOY_W 511  // joypad LEFT
 #define JOY_DEV 20 // deviation
 
-//Define the total of buttons horizontal and vertical
-#define HORIZONTAL_BUTTONS 8 
-#define VERTICAL_BUTTONS 8 
+// Define the total of buttons horizontal and vertical
+#define HORIZONTAL_BUTTONS 8
+#define VERTICAL_BUTTONS 8
 
-#include <stdint.h>
-#include <stdbool.h>
 #include "../emulator/adriel_2026_work/emulator_driver/emulator_driver.h"
+
+#include <stdbool.h>
+#include <stdint.h>
 
 // To be done in the future
 typedef struct {
@@ -38,9 +39,20 @@ typedef struct {
 } ButtonState;
 
 typedef enum {
-    BTN_1 = 0, BTN_2, BTN_3, BTN_4, BTN_5,
-    BTN_6, BTN_7, BTN_8, BTN_9,
-    BTN_UP, BTN_DOWN, BTN_LEFT, BTN_RIGHT, BTN_ENTER,
+    BTN_1 = 0,
+    BTN_2,
+    BTN_3,
+    BTN_4,
+    BTN_5,
+    BTN_6,
+    BTN_7,
+    BTN_8,
+    BTN_9,
+    BTN_UP,
+    BTN_DOWN,
+    BTN_LEFT,
+    BTN_RIGHT,
+    BTN_ENTER,
     BTN_COUNT
 } ButtonID;
 
@@ -48,39 +60,39 @@ typedef enum {
 extern ButtonState keyButtons[BTN_COUNT];
 
 // Pressed this frame only (just pressed)
-#define BTN_JUST_PRESSED(id)  (!keyButtons[id].prev &&  keyButtons[id].cur)
+#define BTN_JUST_PRESSED(id) (!keyButtons[id].prev && keyButtons[id].cur)
 
 // Released this frame only
 #define BTN_JUST_RELEASED(id) (keyButtons[id].prev && !keyButtons[id].cur)
 
 // Held down
-#define BTN_HELD(id) (keyButtons[id].prev &&  keyButtons[id].cur)
+#define BTN_HELD(id) (keyButtons[id].prev && keyButtons[id].cur)
 
 void checkAllButtons(void);
 void updateAllButtons(void);
-/** 
+/**
  * @brief Call once per frame/loop to check one of the 9 buttons pressed or not
- **/ 
+ **/
 void checkNineButton(void);
 
-/** 
+/**
  * @brief Call once per frame/loop to update 9 buttons only
- **/ 
+ **/
 void updateNineButton(void);
 
-/** 
+/**
  * @brief Call once per frame/loop to check one of the move/enter buttons pressed or not
- **/ 
+ **/
 void checkMoveButton(void);
 
-/** 
+/**
  * @brief Call once per frame/loop to update I,J,K,L, Enter buttons only
- **/ 
+ **/
 void updateMoveButton(void);
 
 #endif
 
-//Compile if specific macro has been defined
+// Compile if specific macro has been defined
 #ifdef INTERNAL_INSPIRE_MATRIX
 
 #define BUTTON_NONE 40
@@ -157,7 +169,8 @@ void updateMoveButton(void);
 #define BUTTON_UP 46
 #define BUTTON_DOWN 29
 #define BUTTON_LEFT 55
-#define BUTTON_RIGHT 37 /// @note When using battery power source without laptop grounding,
+#define BUTTON_RIGHT                                                                     \
+    37 /// @note When using battery power source without laptop grounding,
 // right button seems cannot reliably detected.
 #define SPECIAL_BUTTON_DEVIATION 2
 
@@ -245,10 +258,10 @@ static const int buttons[NUM_BUTTONS] = {BUTTON_0, BUTTON_1, BUTTON_2, BUTTON_3,
 /// @brief Array of buttons corresponding to the ADC values, for linear searching
 static const int buttons[NUM_BUTTONS];
 
-/** 
- * @brief Show whether each LED condition is on or not; `0` means OFF, 
+/**
+ * @brief Show whether each LED condition is on or not; `0` means OFF,
  * whereas `1` means Foreground, `2` means Background
- **/  
+ **/
 extern uint8_t ledCondition[NUM_BUTTONS];
 
 #endif
