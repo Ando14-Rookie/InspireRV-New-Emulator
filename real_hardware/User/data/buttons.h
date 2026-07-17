@@ -1,7 +1,7 @@
 /// @brief Button calibration values from ADC_read()
 #pragma once
 
-#include "funconfig.h"
+#include "../funconfig.h"
 
 // Joypad calibration values
 /*#define JOY_N 197  // joypad UP

@@ -1,6 +1,8 @@
 #include "colors.h"
 
 color_t onColorGreen = {100, 255, 100}; // Green
+color_t onColorYellow = {255, 255, 100}; // Yellow
+color_t onColorPurple = {165, 100, 255}; // Purple
 color_t onColorBlue = {100, 100, 255};  // Blue
 
 const color_t fixedColorGreen = {100, 255, 100}; // Green

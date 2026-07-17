@@ -61,6 +61,11 @@ void set_color_no_div(uint8_t led, color_t color) {
     led_array[led].b = color.b;
 }
 
+/** 
+ * @brief Fill the whole LED matrix with desired  color and brightness level
+ * @param color The color for each LED
+ * 
+ **/
 static inline void fill_color(color_t color) {
     for (int i = 0; i < NUM_LEDS; i++) {
         set_color(i, color, ledDivisor);
@@ -73,6 +78,7 @@ static inline void clear(void) {
     }
 }
 
+/// @brief Handle the initial `RV logo screen` in the beginning of InspireRV 
 static inline void fill_logo(void) {
     for (int i = 0; i < NUM_LEDS; i++) {
         switch(i){
@@ -94,7 +100,7 @@ static inline void fill_logo(void) {
             case 23:
             case 19:
                 set_color(i, (color_t){0, 100, 0},ledDivisor);
-            break;
+                break;
             case 2:
             case 11:
             case 9:

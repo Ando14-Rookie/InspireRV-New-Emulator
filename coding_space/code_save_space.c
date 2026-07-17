@@ -9,6 +9,7 @@ color_t codeSaveSlots[SAVE_SLOTS][NUM_LEDS];
 bool codeSlotUsed[SAVE_SLOTS] = {false};
 
 // S logo to be shown when choosing where to save
+// Variable: `saveLogo[row][column]`
 static const int saveLogo[7][8] = {
     {0, 0, 0, 0, 0, 0, 0, 0}, // row 0: XXXXXXXX
     {0, 0, 1, 1, 1, 1, 1, 0}, // row 1: XX■■■■■X  <- adjusted from your pattern
@@ -20,6 +21,7 @@ static const int saveLogo[7][8] = {
 };
 
 // It is and 8 type of 8x8 LED matrix scenario
+// Variable: `saveConfirmLogo[slotIndex][row][column]`
 static const int saveConfirmLogo[8][8][8] =
     {
 
@@ -248,14 +250,14 @@ static const int loadConfirmLogo[8][8][8] =
             },
 };
 
-void initCodeSaveSlots(void) {
-    for (int s = 0; s < SAVE_SLOTS; s++) {
-        // paintSlotUsed[s] = false;
-        for (int i = 0; i < NUM_LEDS; i++) {
-            codeSaveSlots[s][i] = offColor;
-        }
-    }
-}
+// void initCodeSaveSlots(void) {
+//     for (int s = 0; s < SAVE_SLOTS; s++) {
+//         // paintSlotUsed[s] = false;
+//         for (int i = 0; i < NUM_LEDS; i++) {
+//             codeSaveSlots[s][i] = offColor;
+//         }
+//     }
+// }
 
 void saveOrLoadCodeToSlot(void) {
     // renderSaveLoadSlotScreen function: to print save/load screen emulator and let user

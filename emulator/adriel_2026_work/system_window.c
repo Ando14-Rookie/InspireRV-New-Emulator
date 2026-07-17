@@ -1,4 +1,5 @@
 #ifdef _WIN32
+
     #include "system_window.h"
     #include "extra_function.h"
 
@@ -153,4 +154,5 @@
 
     // Initialize the thread to listen to keyboard events
     void pthread_init() { pthread_create(&thread, NULL, eventTapThread, NULL); }
+
 #endif

@@ -62,7 +62,7 @@
  * TODO: make the interrupt mode default?
  * TODO: error reporting
  */
-#include <ch32v003fun/ch32v003fun.h>
+#include "./ch32v003fun.h"
 #include <string.h>
 
 

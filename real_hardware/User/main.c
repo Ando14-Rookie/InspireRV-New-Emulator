@@ -43,18 +43,35 @@
 
 #define delay 1000
 
+// Ensure HSI value has been defined
+#ifndef HSI_VALUE
+#define HSI_VALUE 24000000
+#endif
 
-
-// initialize file storage structure for 32kb/512pages
-// first 8 pages are used for status
+/// @brief Initialize file storage structure for 32kb/512pages. First 8 pages are used for status.
 void init_storage(void);
-void save_paint(uint16_t paint_no, color_t * data, uint8_t is_icon);    // save paint data to eeprom, paint 0 stored in page ?? (out of page 0 to 511)
+
+/// @brief Save paint data to eeprom, paint 0 stored in page ?? (out of page 0 to 511)
+void save_paint(uint16_t paint_no, color_t * data, uint8_t is_icon);    
 void load_paint(uint16_t paint_no, color_t * data, uint8_t is_icon);    // load paint data from eeprom, paint 0 stored in page ?? (out of page 0 to 511)
-void set_page_status(uint16_t page_no, uint8_t status); // set page status to 0 or 1
-void reset_storage(void);   // reset to default storage status
-void print_status_storage(void);    // print storage data to console
+/** 
+ * 
+ * 
+ **/
+void set_page_status(uint16_t page_no, uint8_t status); 
+/// @brief Reset to default storage status
+void reset_storage(void);   
+/// @brief Reads back and prints the current EEPROM status to console
+void print_status_storage(void);    
+
 uint8_t is_page_used(uint16_t page_no); // check if page[x] is already used
-uint8_t is_storage_initialized(void);   // check if already initialized data, aka init_status_data is set
+
+/** 
+ * @brief Checks whether a block of data stored in EEPROM matches an expected “initialization signature.”
+ * It check if already initialized data, i.e., init_status_data is set.
+ * @return If every bit matches, it returns `1`; Otherwise, it is 0
+ **/
+uint8_t is_storage_initialized(void);   
 // save opcode data to eeprom, paint 0 stored in page ?? (out of page 0 to 511)
 void save_opCode(uint16_t opcode_no, uint8_t * data);
 void load_opCode(uint16_t opcode_no, uint8_t * data);
@@ -222,11 +239,6 @@ typedef struct rvCodeParts {
 } rvCodeParts;
 rvCodeParts rv_coding_board[64]={'0'}; // 8x8 gameboard
 int8_t pointerLocation = 36;
-
-
-
-
-
 
 // Color defines
 void flushCanvas(void);
@@ -1260,6 +1272,7 @@ void iconShow(void){
 //*****************  Storage   *****************//
 //**********************************************//
 //////////////////////////////////////////////////
+
 void init_storage(void) {
     if (!is_storage_initialized()) {
         reset_storage();
@@ -1271,20 +1284,26 @@ void init_storage(void) {
 }
 
 uint8_t is_storage_initialized(void) {
+    // Creates a temporary buffer to hold bytes read from EEPROM
     uint8_t data[init_status_reg_size];
+    // Reads (retrieve information) init_status_reg_size bytes starting at init_status_addr_begin from the EEPROM into data
     i2c_read(EEPROM_ADDR, init_status_addr_begin, I2C_REGADDR_2B, data, init_status_reg_size);
+    // Check if this EEPROM block has already been initialized
     for (uint8_t i = 0; i < init_status_reg_size; i++) {
         if (data[i] != *(init_status_data + i)) {
             return 0;
         }
     }
+    // If success, this means EEPROM contents look valid and already initialized
     return 1;
 }
 
 void reset_storage(void) {
+    // Writes init_status_data into the initialization-signature area, which marks the storage as “initialized.”
     i2c_write(EEPROM_ADDR, init_status_addr_begin, I2C_REGADDR_2B, init_status_data,
         init_status_reg_size);
     Delay_Ms(3);
+    // Loops through every page-status byte and writes 0, make it uninitialized
     for (uint16_t addr = page_status_addr_begin;
          addr < page_status_addr_begin + page_status_reg_size; addr++) {
         i2c_write(EEPROM_ADDR, addr, I2C_REGADDR_2B, (uint8_t[]){0}, sizeof(uint8_t));
@@ -1295,10 +1314,12 @@ void reset_storage(void) {
 
 void print_status_storage(void) {
     printf("Status storage data:\n");
+
     for (uint16_t addr = init_status_addr_begin;
          addr < init_status_addr_begin + init_status_reg_size; addr++) {
         uint8_t data = 0;
         i2c_read(EEPROM_ADDR, addr, I2C_REGADDR_2B, &data, sizeof(data));
+        // Prints the initialization status bytes, one by one
         printf(" %d: ", addr);
         printf(init_status_format, data);
     }
@@ -1684,7 +1705,11 @@ void flushCanvas(void) {
     WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
 }
 
-
+/** 
+ * @brief Create color pallete that user can choose from the 8x8 LED Matrix.
+ * It is used to `select new foreground and background color`
+ * 
+ **/
 void displayColorPalette(void) {
     for (int i = 0; i < NUM_LEDS; i++) {
         set_color(i, colors[i], brightness_divisor);

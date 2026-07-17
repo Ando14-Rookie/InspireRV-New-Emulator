@@ -1,5 +1,4 @@
-#ifdef __APPLE__
-
+#ifdef _APPLE_
     #ifndef SYSTEM_MAC_H
     #define SYSTEM_MAC_H
 

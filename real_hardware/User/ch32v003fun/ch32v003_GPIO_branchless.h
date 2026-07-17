@@ -7,7 +7,7 @@
 #define CH32V003_GPIO_BR_H
 
 // includes
-#include <ch32v003fun/ch32v003fun.h>
+#include "../ch32v003fun/ch32v003fun.h"
 #include <stdint.h>								//uintN_t support
 
 

@@ -13,11 +13,11 @@ extern color_t codeSaveSlots[SAVE_SLOTS][NUM_LEDS];
 // Verify which slot has been used
 // extern bool paintSlotUsed[SAVE_SLOTS];
 
-/** 
+/** UNUSED
  * @brief Initialize all 8 save slots and make each slot `codeSaveSlots` and `codeSlotUsed`
  * variable to false or empty by default
 **/
-void initCodeSaveSlots(void);
+// void initCodeSaveSlots(void);
 
 /** 
  * @brief Save a specific slot to `codeSaveSlots[slotIndex]` and ensure codeSlotUsed[slotIndex] 

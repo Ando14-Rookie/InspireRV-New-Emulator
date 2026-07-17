@@ -31,6 +31,10 @@ void renderBrightnessSelectScreen(void) {
 
     // Reset prev states once before the loop
     updateMoveButton();
+
+    // As soon as user enter this program, print brightness selection screen once
+    createBrightnessSelectionScreen();
+    
     while (!divisorChosen) {
         // Activate keyboard I, J, K, L press input
         checkMoveButton();

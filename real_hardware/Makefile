@@ -27,8 +27,8 @@ LDSCRIPT ?= ./Ld/Link.ld
 
 # Project files
 # List of project sources to be compiled
-C_SOURCES := ./User/data/main.c \
-	./User/ch32v003fun/ch32v003fun.c
+C_SOURCES := ./User/main.c \
+	./User/ch32v003fun/ch32v003fun.c 
  # List of assembly source files
 ASM_SOURCES := ./Startup/startup_ch32v00x.S
 # Leth program know where to find the header

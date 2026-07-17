@@ -1,5 +1,4 @@
 #ifdef _WIN32
-
     #ifndef SYSTEM_WINDOW_H
     #define SYSTEM_WINDOW_H
 
@@ -11,6 +10,8 @@
     #include <windows.h>
     // Need the Delay_Ms declaration
     #include "./emulator_driver/emulator_driver.h"
+
+    void pthread_init(void);
 
     // Virtual-Key Codes: to identifykey input for Windows ONLY
     #define A_Key 0x41
@@ -42,13 +43,12 @@
     #define MAX_KEYS 6
 
     // Keep the actual definitions in exactly one .c file so only defined ONCE
-    // thread: to handle multiple execution asynchronously
+    //thread: to handle multiple execution asynchronously 
 
-    // extern: to tell compiler variable will be instantsiated somewhere later
+    //extern: to tell compiler variable will be instantsiated somewhere later
     extern pthread_t thread;
 
-    // Act as a temporary container that tracks which keys are currently physically held down
-    // at any given moment
+    // Act as a temporary container that tracks which keys are currently physically held down at any given moment
     extern WORD pressedKeys[MAX_KEYS];
 
     // How many keys are in that snapshot
@@ -56,8 +56,7 @@
 
     extern bool invalidKey;
 
-    // keyMutex: prepare a mutex (a lock that stops multiple threads from messing up shared
-    // data)
+    // keyMutex: prepare a mutex (a lock that stops multiple threads from messing up shared data)
     extern pthread_mutex_t keyMutex;
 
     // thread: unique identifier for the thread we will create to listen to keyboard events
@@ -66,10 +65,8 @@
     // Change from MacOS into Windows Setup
     // WORD: 16-bit unsigned integer
     static const WORD ABCD[] = {A_Key, B_Key, C_Key, D_Key};
-    static const WORD _0123456789ABCDEF[] = {_0_Key, _1_Key, _2_Key, _3_Key, _4_Key, _5_Key,
-        _6_Key, _7_Key, _8_Key, _9_Key, A_Key, B_Key, C_Key, D_Key, E_Key, F_Key};
-
-    void pthread_init();
+    static const WORD _0123456789ABCDEF[] = {_0_Key, _1_Key, _2_Key, _3_Key, _4_Key,
+        _5_Key, _6_Key, _7_Key, _8_Key, _9_Key, A_Key, B_Key, C_Key, D_Key, E_Key, F_Key};
 
     /**
      * @brief  Adds a key code to a list of currently pressed keys (ONLY WHEN 1st Time)
@@ -77,7 +74,7 @@
      *  */
     void addKey(WORD keyCode);
 
-    /**
+    /** 
      * @brief Remove specific keyCode from list and then move left if it is in center
      * @param keyCode which key you are pressing
      **/

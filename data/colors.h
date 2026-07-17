@@ -23,6 +23,8 @@ typedef struct color_t {
 
 // Needs to be able to adapt to different brightness level
 extern color_t onColorGreen;
+extern color_t onColorYellow;
+extern color_t onColorPurple;
 extern color_t onColorBlue;
 
 extern const color_t fixedColorGreen;

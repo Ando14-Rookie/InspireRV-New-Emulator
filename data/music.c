@@ -4,8 +4,61 @@ uint16_t calculateEmuDuration(uint8_t emuDurVar){
     return (50+emuDurVar*100);
 }
 
-void playEmuNote(uint16_t frequency, uint16_t durationMs){
-    Beep((DWORD)frequency, (DWORD)durationMs);
+void playEmuNote(uint16_t frequency, uint16_t durationMs) {
+    if (frequency == 0) {
+        // Rest note: just delay without playing sound
+        #if defined(_WIN32) || defined(_WIN64)
+            Sleep(durationMs);
+        #else
+            usleep(durationMs * 1000);
+        #endif
+        return;
+    }
+
+    #if defined(_WIN32) || defined(_WIN64)
+        // Windows Implementation
+        Beep((DWORD)frequency, (DWORD)durationMs);
+
+    #elif defined(__APPLE__)
+        // macOS Implementation
+        // 1. Setup our tone data configuration
+        MacToneData tone = {
+            .targetFrequency = (double)frequency,
+            .sampleRate = 44100.0,
+            .frameCounter = 0
+        };
+
+        // 2. Describe the audio component details
+        AudioComponentDescription desc = {
+            .componentType = kAudioUnitType_Output,
+            .componentSubType = kAudioUnitSubType_DefaultOutput,
+            .componentManufacturer = kAudioUnitManufacturer_Apple
+        };
+
+        AudioComponent comp = AudioComponentFindNext(NULL, &desc);
+        AudioUnit toneUnit;
+        AudioComponentInstanceNew(comp, &toneUnit);
+
+        // 3. Attach our custom waveform renderer function
+        AURenderCallbackStruct inputCallback = {
+            .inputProc = ToneRenderCallback,
+            .inputProcRefCon = &tone
+        };
+        AudioUnitSetProperty(toneUnit, kAudioUnitProperty_SetRenderCallback, 
+                            kAudioUnitScope_Input, 0, &inputCallback, sizeof(inputCallback));
+
+        // 4. Start playing the note
+        AudioUnitInitialize(toneUnit);
+        AudioOutputUnitStart(toneUnit);
+
+        // 5. Let it play for the requested duration length
+        usleep(durationMs * 1000);
+
+        // 6. Tear down the audio engine component cleanly
+        AudioOutputUnitStop(toneUnit);
+        AudioUnitUninitialize(toneUnit);
+        AudioComponentInstanceDispose(toneUnit);
+    #endif
 }
 
 // const int melody[] = {

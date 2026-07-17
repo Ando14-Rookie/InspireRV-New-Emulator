@@ -1,7 +1,7 @@
 #pragma once
 
 #include "colors.h"
-#include "funconfig.h"
+#include "../funconfig.h"
 
 #define font_width 3
 #define font_height 5

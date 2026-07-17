@@ -20,24 +20,24 @@ uint8_t speedVar = 4; // Default speed variable: 0b100 for simulation, can be ch
 
 // Made only for this coding_space.c file to use
 // Default position of the pointer is at (0,0) which is LED 36 n this case
-static inline uint8_t simPointer = 36;
+static uint8_t simPointer = 36;
 // .r is green; .g is red; .b is blue
-static inline color_t simPenColor = {.r = 0, .g = 255, .b = 0};
-static inline color_t fillScreenColor = {.r = 0, .g = 0, .b = 0};
-static inline color_t clearColor = {.r = 0, .g = 0, .b = 0};
+static color_t simPenColor = {.r = 0, .g = 255, .b = 0};
+static color_t fillScreenColor = {.r = 0, .g = 0, .b = 0};
+static color_t clearColor = {.r = 0, .g = 0, .b = 0};
 
 // Default sound frequency and duration
 uint16_t soundFreq = 1000;
 uint16_t soundDur = 100;
 
-static inline int8_t rVariable = 7, gVariable = 7, bVariable = 7, xVariable = 4,
+static int8_t rVariable = 7, gVariable = 7, bVariable = 7, xVariable = 4,
                      yVariable = 4, loopVariable = 0;
-static inline int8_t jumpVar = 1;
+static int8_t jumpVar = 1;
 
 // Hide the cursor by default if varRun is 0, and conversely
-static inline uint8_t simPenStatus = 0;
+static uint8_t simPenStatus = 0;
 // Pen is being used to draw or not; 0 = pen up, 1 = pen down with RGB
-static inline color_t simPenRGB = {.r = 0, .g = 0, .b = 0};
+static color_t simPenRGB = {.r = 0, .g = 0, .b = 0};
 
 SimState simState = SIM_IDLE;
 uint8_t simLineRun = 0;
