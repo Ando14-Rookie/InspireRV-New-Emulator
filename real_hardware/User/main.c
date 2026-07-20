@@ -1,14 +1,18 @@
 #define CH32V003_I2C_IMPLEMENTATION
 #define WS2812BSIMPLE_IMPLEMENTATION
 #include <stdbool.h>
-#include <stdio.h>
+#include "funconfig.h"
 #include "./ch32v003fun/ch32v003_i2c.h"
 #include "./data/colors.h"
 #include "./ch32v003fun/driver.h"
 //#include "./data/fonts.h"
 #include "./data/music.h"
 #include "./ch32v003fun/ws2812b_simple.h"
+// #ifdef abs
+// #undef abs
+// #endif
 #include "./ch32v003fun/ch32v003fun.h"
+#include "./hardware_binary_game/binary_game.h"
 
 //Storage defines
 #define EEPROM_ADDR 0x53 // obtained from i2c_scan(), before shifting by 1 bit
@@ -224,7 +228,8 @@ uint8_t opGroupExtraction(uint8_t received_message[8]);
 uint8_t opCodeExtraction(uint8_t received_message[8]);
 uint8_t varExtraction(uint8_t received_message[8]);
 void toCodingSpace(uint8_t curr_page);
-const uint32_t timeout_flash = 200;
+static void updatePendownColorFromBits(uint8_t bits, uint8_t rVariable, uint8_t gVariable, uint8_t bVariable);
+static const uint32_t timeout_flash = 200;
 uint32_t timeout_var_code = 150;
 uint32_t timeout_line_code = 300;
 uint8_t funcRun[8] = {0};
@@ -241,8 +246,9 @@ rvCodeParts rv_coding_board[64]={'0'}; // 8x8 gameboard
 int8_t pointerLocation = 36;
 
 // Color defines
-void flushCanvas(void);
-void displayColorPalette(void);
+// Put it in the header file
+// void flushCanvas(void);
+// void displayColorPalette(void);
 void colorPaletteSelection(color_t * selectedColor);
 void logoDisplay(void);
 void red_screen(void);
@@ -256,18 +262,18 @@ typedef struct {
 } canvas_t;
 canvas_t canvas[NUM_LEDS] = {0};
 
-const color_t color_savefile_exist = {.r = 0, .g = 0, .b = 100};
-const color_t color_savefile_empty = {.r = 0, .g = 100, .b = 0};
-const color_t opcodeColor = {100, 0, 0};
-const color_t valueColor = {0, 0, 100};
+static const color_t color_savefile_exist = {.r = 0, .g = 0, .b = 100};
+static const color_t color_savefile_empty = {.r = 0, .g = 100, .b = 0};
+static const color_t opcodeColor = {100, 0, 0};
+static const color_t valueColor = {0, 0, 100};
 color_t foreground = {100, 0, 0};
 color_t background = {0, 0, 100};
-color_t pointground = {100, 100, 100};
-color_t clearground = {0, 0, 0};
-color_t pageground = {0, 10, 0};
+// color_t pointground = {100, 100, 100};
+static const color_t clearground = {0, 0, 0};
+static const color_t pageground = {0, 10, 0};
 color_t rvPointerColor = {.r = 150, .g = 150, .b = 150};
 color_t rvPendownColor = {.r = 255, .g = 0, .b = 0};
-color_t rvClearColor = {.r = 0, .g = 0, .b = 0};
+static const color_t rvClearColor = {.r = 0, .g = 0, .b = 0};
 
 uint8_t brightness_divisor = 10;// >0
 uint8_t normal_brightness_divisor = 10;// >0
@@ -292,8 +298,10 @@ int main(void) {
             erase_all_paint_saves();
             // Visual indication of paint save reset
             red_screen();
+            #ifdef DEBUG_VERBOSE
             printf("Paint reset\n");
             printf("DEBUG: %d\n", __LINE__);
+            #endif
             Delay_Ms(1000);
         }
         Delay_Ms(1);
@@ -660,7 +668,10 @@ void rvCodeRun(uint8_t direct_result){
                             penStatus = 0;
                         }
                         else{
-                            penStatus = 1;
+                            penStatus = 1; 
+                            updatePendownColorFromBits(var_line_storage[line_run], rVariable, gVariable, bVariable);
+                            
+                            /* SAME AS BELOW HERE:
                             if((var_line_storage[line_run]&0x04)==0x04)
                                 rvPendownColor.r = 36*rVariable;
                             else
@@ -672,8 +683,12 @@ void rvCodeRun(uint8_t direct_result){
                             if((var_line_storage[line_run]&0x01)==0x01)
                                 rvPendownColor.b = 36*bVariable;
                             else
-                                rvPendownColor.b = 0;
-                            //printf("Leave Color R: %d, G: %d, B:%d\n",rvPendownColor.r, rvPendownColor.g, rvPendownColor.b);
+                                rvPendownColor.b = 0; 
+                            */
+
+                            #ifdef DEBUG_VERBOSE
+                            printf("Leave Color R: %d, G: %d, B:%d\n",rvPendownColor.r, rvPendownColor.g, rvPendownColor.b);
+                            #endif
                         }
                         break;
                     case _RVCODE_OPCODE_TURT_POS:
@@ -1025,7 +1040,10 @@ void rvCodeRun(uint8_t direct_result){
     }
 }
 
+/// @brief Do OR operation with each case such as `0x10 | 0x01 --> 0b11`
 uint8_t opGroupExtraction(uint8_t received_message[8]){
+    return (received_message[7] ? 0x02 : 0) | (received_message[6] ? 0x01 : 0);
+    /* SAME AS BELOW: 
     uint8_t opcodeGroup = 0;
     for (int i = 7; i > 5; i--) {
         if(received_message[i]>0)
@@ -1036,30 +1054,40 @@ uint8_t opGroupExtraction(uint8_t received_message[8]){
                 opcodeGroup = opcodeGroup|0x01;
             }
     }
-    return opcodeGroup;
+    return opcodeGroup; */
 }
 
+/// @brief Do OR operation with each case that will result 5-bits value
 uint8_t opCodeExtraction(uint8_t received_message[8]){
-    uint8_t extracted_code = 0;
-    for (int i = 7; i > 2; i--) {
-        if(received_message[i]>0)
-            if(i == 7){
-                extracted_code = extracted_code|0x10;
-            }
-            else if(i == 6){
-                extracted_code = extracted_code|0x08;
-            }
-            else if(i == 5)
-                extracted_code = extracted_code|0x04;
-            else if(i == 4)
-                extracted_code = extracted_code|0x02;
-            else if(i == 3)
-                extracted_code = extracted_code|0x01;
-    }
-    return extracted_code;
+    uint8_t code = 0;
+    for (int i = 3; i <= 7; i++) code |= (received_message[i] ? (1 << (i - 3)) : 0);
+    return code;
+    /* SAME AS BELOW
+        uint8_t extracted_code = 0;
+        for (int i = 7; i > 2; i--) {
+            if(received_message[i]>0)
+                if(i == 7){
+                    extracted_code = extracted_code|0x10;
+                }
+                else if(i == 6){
+                    extracted_code = extracted_code|0x08;
+                }
+                else if(i == 5)
+                    extracted_code = extracted_code|0x04;
+                else if(i == 4)
+                    extracted_code = extracted_code|0x02;
+                else if(i == 3)
+                    extracted_code = extracted_code|0x01;
+        }
+        return extracted_code;
+    */
 }
-
+/// @brief Do OR operation with each case that will result 3-bits value
 uint8_t varExtraction(uint8_t received_message[8]){
+    uint8_t v = 0;
+    for (int i = 0; i <= 2; i++) v |= (received_message[i] ? (1 << i) : 0);
+    return v;
+    /* SAME AS BELOW HERE: 
     uint8_t extracted_var = 0;
     for (int i = 2; i >= 0; i--) {
         if(received_message[i]>0)
@@ -1071,6 +1099,7 @@ uint8_t varExtraction(uint8_t received_message[8]){
                 extracted_var = extracted_var|0x01;
     }
     return extracted_var;
+    */
 }
 void toCodingSpace(uint8_t curr_page){
    printf("Coding workspace Page %d\n", curr_page);
@@ -1131,21 +1160,12 @@ void logoDisplay(void){
     WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
 }
 
-
-
-
-
-
-
-
-
-
-
 //////////////////////////////////////////////////
 //**********************************************//
 //****************  RV Paint    ****************//
 //**********************************************//
 //////////////////////////////////////////////////
+
 void painting_routine(void) {
     for (int i = 0; i < NUM_LEDS; i++) {
         canvas[i].layer = CLEARROUND_LAYER;
@@ -1158,10 +1178,16 @@ void painting_routine(void) {
         if (user_input == no_button_pressed) {
 
             if (JOY_1_pressed()) {
+                #ifdef DEBUG_VERBOSE
                 printf("Enter paint loading screen!\n");
+                #endif
+
                 choose_load_page(rv_paint);
                 Delay_Ms(1000);
+
+                #ifdef DEBUG_VERBOSE
                 printf("Exit paint loading screen!\n");
+                #endif
             }
             else if (JOY_2_pressed()) {
                 // save paint
@@ -1182,10 +1208,12 @@ void painting_routine(void) {
             else if (JOY_4_pressed()) {
                 colorPaletteSelection(&foreground);
             }
+            else if (JOY_5_pressed()) {
+                renderBinaryGameHW(brightness_divisor);
+            }
             else if (JOY_6_pressed()) {
                 colorPaletteSelection(&background);
             }
-
 
             else if (JOY_7_pressed()) {
                 // save paint
@@ -1320,14 +1348,18 @@ void print_status_storage(void) {
         uint8_t data = 0;
         i2c_read(EEPROM_ADDR, addr, I2C_REGADDR_2B, &data, sizeof(data));
         // Prints the initialization status bytes, one by one
+        #ifdef DEBUG_VERBOSE
         printf(" %d: ", addr);
         printf(init_status_format, data);
+        #endif
     }
     printf("\n");
     for (uint16_t addr = page_status_addr_begin;
          addr < page_status_addr_begin + page_status_reg_size; addr++) {
         uint8_t data = 0;
         i2c_read(EEPROM_ADDR, addr, I2C_REGADDR_2B, &data, sizeof(data));
+        
+        #ifdef DEBUG_VERBOSE
         if (data) {
             printf("%d ", addr);
         }
@@ -1337,20 +1369,26 @@ void print_status_storage(void) {
         if ((addr + 1) % matrix_hori == 0) {
             printf("\n");
         }
+        #endif
     }
     printf("\n");
 }
 
 void set_page_status(uint16_t page_no, uint8_t status) {
     if (status > 1) {
+        #ifdef DEBUG_VERBOSE
         printf("Invalid status %d\n", status);
         printf("DEBUG: %d\n", __LINE__);
+        #endif
+
         while (1)
             ;
     }
     if (page_no < page_status_addr_begin || page_no > page_status_addr_end) {
+        #ifdef DEBUG_VERBOSE
         printf("Invalid page number %d\n", page_no);
         printf("DEBUG: %d\n", __LINE__);
+        #endif
         while (1)
             ;
     }
@@ -1361,8 +1399,11 @@ void set_page_status(uint16_t page_no, uint8_t status) {
 
 uint8_t is_page_used(uint16_t page_no) {
     if (page_no < page_status_addr_begin || page_no > page_status_addr_end) {
+        #ifdef DEBUG_VERBOSE
         printf("Invalid page number %d\n", page_no);
         printf("DEBUG: %d\n", __LINE__);
+        #endif
+
         while (1);
     }
     uint8_t data = 0;
@@ -1384,91 +1425,130 @@ uint16_t calculate_page_no(uint16_t paint_no, uint8_t is_icon) {
 
 void save_paint(uint16_t paint_no, color_t * data, uint8_t is_icon) {
     if (paint_no < 0 || paint_no > paint_addr_end) {
+        #ifdef DEBUG_VERBOSE
         printf("Invalid paint number %d\n", paint_no);
         printf("DEBUG: %d\n", __LINE__);
+        #endif
         while (1)
             ;
     }
     uint16_t page_no_start = calculate_page_no(paint_no, is_icon);
     for (uint16_t i = page_no_start; i < page_no_start + sizeof_paint_data_aspage; i++) {
         if (is_page_used(i)) {
+            #ifdef DEBUG_VERBOSE
             printf("Paint %d already used, overwriting\n", paint_no);
+            #endif
             Delay_Ms(500);
         }
         set_page_status(i, 1);
     }
     i2c_result_e err = i2c_write_pages(EEPROM_ADDR, page_no_start * page_size,
         I2C_REGADDR_2B, (uint8_t *)data, sizeof_paint_data);
+    
+    #ifdef DEBUG_VERBOSE
     printf("Save paint result: %d\n", err);
+    #endif
     Delay_Ms(3);
+    #ifdef DEBUG_VERBOSE
     printf("Paint %d saved\n", paint_no);
+    #endif
 }
 
 
 void save_opCode(uint16_t opcode_no, uint8_t * data) {
     if (opcode_no < 0 || opcode_no > page_status_addr_end) {
+        #ifdef DEBUG_VERBOSE
         printf("Invalid paint number %d\n", opcode_no);
         printf("DEBUG: %d\n", __LINE__);
+        #endif
         while (1);
     }
     uint16_t page_no_start = calculate_page_no(opcode_no, 0);
     for (uint16_t i = page_no_start; i < page_no_start + sizeof_opcode_data_aspage; i++) {
         if (is_page_used(i)) {
+
+            #ifdef DEBUG_VERBOSE
             printf("Opcode %d already used, overwriting\n", opcode_no);
+            #endif
+
             Delay_Ms(500);
         }
         set_page_status(i, 1);
     }
     i2c_result_e err = i2c_write_pages(EEPROM_ADDR, page_no_start * page_size,
         I2C_REGADDR_2B, (uint8_t *)data, sizeof_opcode_data);
+    
+    #ifdef DEBUG_VERBOSE
     printf("Save Opcode result: %d\n", err);
+    #endif
     Delay_Ms(3);
+    #ifdef DEBUG_VERBOSE
     printf("Opcode %d saved\n", opcode_no);
+    #endif
 }
 
 void load_paint(uint16_t paint_no, color_t * data, uint8_t is_icon) {
     if (paint_no < 0 || paint_no > paint_addr_end) {
+        #ifdef DEBUG_VERBOSE
         printf("Invalid paint number %d\n", paint_no);
         printf("DEBUG: %d\n", __LINE__);
+        #endif
         while (1)
             ;
     }
     uint16_t page_no_start = calculate_page_no(paint_no, is_icon);
+    #ifdef DEBUG_VERBOSE
     printf("Loading paint_no %d from page %d, is_icon: %d\n", paint_no, page_no_start,
         is_icon);
+    #endif
     if (!is_page_used(page_no_start)) {
+        #ifdef DEBUG_VERBOSE
         printf("Paint %d not found\n", paint_no);
         printf("DEBUG: %d\n", __LINE__);
+        #endif
         while (1)
             ;
     }
     i2c_result_e err = i2c_read_pages(EEPROM_ADDR, page_no_start * page_size,
         I2C_REGADDR_2B, (uint8_t *)data, sizeof_paint_data);
+    
+    #ifdef DEBUG_VERBOSE
     printf("Load paint result: %d\n", err);
+    #endif
     Delay_Ms(3);
+    #ifdef DEBUG_VERBOSE
     printf("Paint %d loaded\n", paint_no);
+    #endif
 }
 
 void load_opCode(uint16_t opcode_no, uint8_t * data) {
     if (opcode_no < 0 || opcode_no > page_status_addr_end) {
+        #ifdef DEBUG_VERBOSE
         printf("Invalid paint number %d\n", opcode_no);
         printf("DEBUG: %d\n", __LINE__);
+        #endif
         while (1)
             ;
     }
     uint16_t page_no_start = calculate_page_no(opcode_no, 0);
     printf("Loading paint_no %d from page %d, is_icon: %d\n", opcode_no, page_no_start,0);
     if (!is_page_used(page_no_start)) {
+        #ifdef DEBUG_VERBOSE
         printf("Paint %d not found\n", opcode_no);
         printf("DEBUG: %d\n", __LINE__);
+        #endif
         while (1)
             ;
     }
     i2c_result_e err = i2c_read_pages(EEPROM_ADDR, page_no_start * page_size,
         I2C_REGADDR_2B, (uint8_t *)data, sizeof_opcode_data);
+    #ifdef DEBUG_VERBOSE
     printf("Load paint result: %d\n", err);
+    #endif
     Delay_Ms(3);
+    #ifdef DEBUG_VERBOSE
     printf("Paint %d loaded\n", opcode_no);
+    #endif
 }
 
 void any_paint_exist(uint8_t * paint_exist) {
@@ -1523,7 +1603,10 @@ void choose_load_page(app_selected app_current) {
                 led_display_paint_page_status(app_current);
                 continue;
             }
+
+            #ifdef DEBUG_VERBOSE
             printf("Selected page %d\n", button);
+            #endif
 
             /*if(appChosen == rv_paint)
                 load_paint(button, led_array, 1);
@@ -1554,13 +1637,19 @@ void choose_load_page(app_selected app_current) {
                 toCodingSpace(currentPage);
             }
 
+            #ifdef DEBUG_VERBOSE
             printf("Paint load\n");
+            #endif
+
             Delay_Ms(1000);
             break;
         }
         else{
             if (JOY_9_pressed()){
+                #ifdef DEBUG_VERBOSE
                 printf("Exit Loading\n");
+                #endif
+
                 break;
             }
         }
@@ -1607,13 +1696,19 @@ void choose_save_page(app_selected app_current) {
             else if(app_current == rv_code)
                 save_opCode(button, opCodeToStored);
 
+            #ifdef DEBUG_VERBOSE
             printf("Paint saved\n");
+            #endif
+
             Delay_Ms(1000);
             break;
         }
         else{
             if (JOY_9_pressed()){
+                #ifdef DEBUG_VERBOSE
                 printf("Exit Saving\n");
+                #endif
+
                 break;
             }
         }
@@ -1670,21 +1765,25 @@ void erase_all_paint_saves(void) {
         //printf("Page is now status: %d\n", is_page_used(_paint_page_no));
         Delay_Ms(3);
     }
+
+    #ifdef DEBUG_VERBOSE
     printf("All paint saves status erased\n");
+    #endif
+
     // Erase existing data to 0
     for (uint16_t _paint_page_no = paint_page_no + page_status_addr_begin;
          _paint_page_no < paint_page_no_max + paint_page_no;
          _paint_page_no += sizeof(uint8_t)) {
         i2c_result_e err = i2c_write_pages(EEPROM_ADDR, _paint_page_no * page_size,
             I2C_REGADDR_2B, (uint8_t[]){0}, sizeof(uint8_t));
+        
+        #ifdef DEBUG_VERBOSE
         printf("Erase paint result: %d\n", err);
+        #endif
+
         Delay_Ms(3);
     }
 }
-
-
-
-
 
 //////////////////////////////////////////////////
 //**********************************************//
@@ -1705,11 +1804,6 @@ void flushCanvas(void) {
     WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
 }
 
-/** 
- * @brief Create color pallete that user can choose from the 8x8 LED Matrix.
- * It is used to `select new foreground and background color`
- * 
- **/
 void displayColorPalette(void) {
     for (int i = 0; i < NUM_LEDS; i++) {
         set_color(i, colors[i], brightness_divisor);
@@ -1723,6 +1817,7 @@ void bucketFill(void){
     int8_t button = no_button_pressed;
     while (1){
         button = matrix_pressed_two();
+        // Check if any button is pressed
         if(button != no_button_pressed){
             for (int i = 0; i < NUM_LEDS; i++) {
                 canvas[i].layer = PAGEGROUND_LAYER;
@@ -1734,7 +1829,10 @@ void bucketFill(void){
         }
         else{
             if(JOY_9_pressed()){
+                #ifdef DEBUG_VERBOSE
                 printf("Exit Saving\n");
+                #endif
+
                 break;
             }
         }
@@ -1763,7 +1861,9 @@ void choose_led_brightness(void){
         }
         else{
             if(JOY_9_pressed()){
+                #ifdef DEBUG_VERBOSE
                 printf("Exit Saving\n");
+                #endif
                 break;
             }
         }
@@ -1799,11 +1899,25 @@ void colorPaletteSelection(color_t * selectedColor) {
         }
         Delay_Ms(200);
     }
+    #ifdef DEBUG_VERBOSE
     printf("Selected color: R:%d G:%d B:%d\n", selectedColor->r, selectedColor->g,
         selectedColor->b);
+    #endif
     flushCanvas();
 }
 
+/** 
+ * @brief Update pen status with selected color from variable bits
+ * @param bits Variable bits from a specific line run
+ * @param rVariable Current red color value
+ * @param gVariable Current green color value
+ * @param bVariable Current blue value
+ **/
+static void updatePendownColorFromBits(uint8_t bits, uint8_t rVariable, uint8_t gVariable, uint8_t bVariable) {
+    rvPendownColor.r = (bits & 0x04) ? 36 * rVariable : 0;
+    rvPendownColor.g = (bits & 0x02) ? 36 * gVariable : 0;
+    rvPendownColor.b = (bits & 0x01) ? 36 * bVariable : 0;
+}
 
 void red_screen(void) {
     fill_color((color_t){.r = 100, .g = 0, .b = 0});

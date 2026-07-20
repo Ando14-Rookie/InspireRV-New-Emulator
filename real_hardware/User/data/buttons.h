@@ -14,9 +14,6 @@
 #define JOY_NW 567 // JOYPAD UP + LEFT
 #define JOY_DEV 20 // deviation*/
 
-
-
-
 #ifndef NUM_BUTTONS
 #define NUM_BUTTONS NUM_LEDS
 #endif

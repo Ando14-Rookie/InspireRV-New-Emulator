@@ -98,8 +98,10 @@ void initBinaryGame(void) {
     }
 }
 
-/// @brief  Show and print the `BINARY_GAME` screen everytime pointer moves or answered
-/// question
+/** 
+ * @brief  Show and print the `BINARY_GAME` screen everytime pointer moves or answered
+ * @param selectedNumber Which random binary question to be shown
+ **/ 
 static inline void renderBinaryGame(uint8_t selectedNumber) {
     // Type of color that should be turned on
     // val can be 0, 1, 2, 3
@@ -123,7 +125,7 @@ static inline void renderBinaryGame(uint8_t selectedNumber) {
             int idx = ledRow * 8 + ledCol;
 
             // Get the number state of that LED
-            val = slotLogo[randomNumber][arrayRow][arrayCol];
+            val = slotLogo[selectedNumber][arrayRow][arrayCol];
 
             // Handle which LED needs to be turned ON based on slotLogo and pointer
             if (val == 1)
@@ -177,7 +179,7 @@ static inline void renderUserInput(void) {
         int ledCol = 7 - col;
         uint8_t idx = 1 * VERTICAL_BUTTONS + ledCol;
 
-        // Columns 2-5 is always green (default state)
+        // Columns 2-5 is always purple (default state)
         // If it is selected, it becomes yellow
         if (rowOneHandle[col] == 0) {
             // Default state = purple color

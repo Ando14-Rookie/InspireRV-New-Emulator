@@ -28,14 +28,20 @@ LDSCRIPT ?= ./Ld/Link.ld
 # Project files
 # List of project sources to be compiled
 C_SOURCES := ./User/main.c \
-	./User/ch32v003fun/ch32v003fun.c 
+	./User/ch32v003fun/ch32v003fun.c \
+	./User/hardware_binary_game/binary_game.c \
+	./User/data/colors.c \
+	./User/data/buttons.c \
+	./User/data/music.c \
+
  # List of assembly source files
 ASM_SOURCES := ./Startup/startup_ch32v00x.S
 # Leth program know where to find the header
 INCLUDES := \
 -I"../User/data" \
 -I"../User/ch32v003fun" \
--I"../User"
+-I"../User"  \
+-I"../real_hardware/User/hardware_binary_game"
 
 # ========= tools =========
 # Defines which tools to use.
@@ -45,20 +51,25 @@ OBJCOPY := $(TOOLPREFIX)objcopy # Converts output formats
 SIZE := $(TOOLPREFIX)size # Prints code/data size
 
 # ========= flags =========
-COMMON_FLAGS := -g -Os -ffunction-sections -fdata-sections -Wall -Wextra
+COMMON_FLAGS := -g -Os -ffunction-sections -fdata-sections -Wall -Wextra -flto -ffunction-sections -fdata-sections
 # the compiler to generate code for a 32-bit RISC-V CPU with:\
 i = base integer instructions\
 m = multiply/divide \
 a = atomic instructions \
 c = compressed instructions \
 zicsr = CSR instructions \
+-flto = link-time optimizatio by deleting unused code \
 zifencei = instruction fence support.
+
 ARCH_FLAGS := -march=rv32ec_zicsr_zifencei -mabi=ilp32e
 
 # Flags for compiling C files.
 # -std=gnu11 uses GNU C11, -MMD generates dependency files, and 
 # -MP adds dummy rules to make header dependency handling safer.
 CFLAGS := $(COMMON_FLAGS) $(ARCH_FLAGS) $(INCLUDES) -std=gnu11 -MMD -MP
+
+# add this only when you want debug prints:
+# CFLAGS += -DDEBUG_VERBOSE
 
 # Flags for compiling assembly files.
 # "-x assembler-with-cpp": tells GCC to preprocess the assembly source first, \

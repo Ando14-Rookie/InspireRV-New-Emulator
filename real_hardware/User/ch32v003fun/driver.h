@@ -10,7 +10,8 @@
 #endif
 
 // README: ACT Button is connected to PA2 !!!!!
-void gpio_init_act(void) {
+// This was changed to "static inline .." to prevent multiple definiton error
+static void gpio_init_act(void) {
     // Enable GPIOA
     RCC->APB2PCENR |= RCC_APB2Periph_GPIOA;
     // PA2 is input
@@ -19,31 +20,45 @@ void gpio_init_act(void) {
     GPIOA->BSHR = ((uint32_t)1<<2);
 }
 // CHANGE THIS TOO IF YOU DONT USE PA2 FOR ACT BUTTON
-uint32_t gpio_act_pressed(void) {
+// This was changed to "static inline .." to prevent multiple definiton error
+static uint32_t gpio_act_pressed(void) {
     // check the value of pa2 is low
     //return ((GPIOA->INDR & (1 << 2)) == 0);
     return !(GPIOA->INDR >> 2);
 }
-void ADC_init(void) {
+
+// This was changed to "static inline .." to prevent multiple definiton error
+static void ADC_init(void) {
     // gpio_init_act();
     GPIO_ADCinit();
 }
 
-uint16_t ADC_read(void) {
+// This was changed to "static inline .." to prevent multiple definiton error
+static uint16_t ADC_read(void) {
     return GPIO_analogRead(GPIO_Ain7_D4);
 }
 
-uint16_t ADC_read_pad(void) {
+// This was changed to "static inline .." to prevent multiple definiton error
+static uint16_t ADC_read_pad(void) {
     return GPIO_analogRead(GPIO_Ain2_C4);
 }
 
-uint16_t ADC_read_smallboard(void) {
+// This was changed to "static inline .." to prevent multiple definiton error
+static uint16_t ADC_read_smallboard(void) {
     //return GPIO_analogRead(GPIO_Ain4_D3);
     return GPIO_analogRead(GPIO_Ain2_C4);
 }
 
 #include <stdio.h>
-uint16_t multiple_ADC_reads(uint16_t (*matrix)(void), uint8_t samples) {
+
+// This was changed to "static inline .." to prevent multiple definiton error
+/** 
+ * @brief Smooths out the natural noise/jitter of a single ADC read 
+ * 
+ * @param matrix Caller passes in whichever specific ADC-reading function they want to sample from
+ * @param 
+ **/
+static uint16_t multiple_ADC_reads(uint16_t (*matrix)(void), uint8_t samples) {
     uint64_t adc = 0;
     for (int8_t i = 0; i < samples; i++) {
         uint16_t _adc = matrix();
@@ -55,7 +70,9 @@ uint16_t multiple_ADC_reads(uint16_t (*matrix)(void), uint8_t samples) {
 }
 
 #define no_button_pressed -1
-int8_t matrix_pressed(uint16_t (*matrix)(void)) {
+
+// This was changed to "static inline .." to prevent multiple definiton error
+static int8_t matrix_pressed(uint16_t (*matrix)(void)) {
     const int8_t samples = 5;
     uint16_t adc = multiple_ADC_reads(matrix, samples);
     for (int8_t i = 0; i < NUM_BUTTONS; i++) {
@@ -81,7 +98,8 @@ typedef enum {
     JOY_MIDDLE = -9
 } JOY_Button;
 
-JOY_Button JOY_check_button(uint16_t adc_value) {
+// This was changed to "static inline .." to prevent multiple definiton error
+static JOY_Button JOY_check_button(uint16_t adc_value) {
      //printf("Special ADC: %d\n", adc_value);
     if (abs(adc_value - JOY_2) <= SPECIAL_BUTTON_DEVIATION)
         return JOY_UP;
@@ -128,11 +146,14 @@ JOY_Button JOY_check_button(uint16_t adc_value) {
 #define JOY_8_pressed() (JOY_check_button(multiple_ADC_reads(ADC_read_smallboard, 5)) == JOY_DOWN)
 #define JOY_9_pressed() (JOY_check_button(multiple_ADC_reads(ADC_read_smallboard, 5)) == JOY_Y)
 
-uint16_t lower_half_ADC_channel(void) {return GPIO_analogRead(GPIO_Ain4_D3);}
-uint16_t upper_half_ADC_channel(void) {return GPIO_analogRead(GPIO_Ain3_D2);}
+// This was changed to "static inline .." to prevent multiple definiton error
+static uint16_t lower_half_ADC_channel(void) {return GPIO_analogRead(GPIO_Ain4_D3);}
+// This was changed to "static inline .." to prevent multiple definiton error
+static uint16_t upper_half_ADC_channel(void) {return GPIO_analogRead(GPIO_Ain3_D2);}
 #define no_button_pressed -1
 
-int8_t matrix_pressed_panel(void) {
+// This was changed to "static inline .." to prevent multiple definiton error
+static int8_t matrix_pressed_panel(void) {
     const int8_t samples = 5;
     uint16_t adc = multiple_ADC_reads(ADC_read_smallboard, samples);
     #define PANEL_BUTTONS 9
@@ -145,7 +166,14 @@ int8_t matrix_pressed_panel(void) {
     return no_button_pressed;
 }
 
-int8_t matrix_pressed_two(void) {
+// This was changed to "static inline .." to prevent multiple definiton error
+/** 
+ * @brief Detects which `physical button` (out of a large resistor-ladder button matrix) is `currently being pressed`, 
+ * by reading two separate ADC channels and matching the reading against a table of expected values.
+ * 
+ * @return which button got pressed
+ **/
+static int8_t matrix_pressed_two(void) {
     const int8_t samples = 5;
     uint16_t adc = multiple_ADC_reads(upper_half_ADC_channel, samples);
     if(adc > 60){
@@ -197,28 +225,28 @@ int8_t matrix_pressed_two(void) {
 #define JOY_pad_released()        (ADC_read_pad() <= 10)
 #define JOY_all_released()        (JOY_act_released() && JOY_pad_released())
 
-static inline uint8_t JOY_up_pressed(void) {
+static uint8_t JOY_up_pressed(void) {
  uint16_t val = ADC_read_pad();
  return(   ((val > JOY_N  - JOY_DEV) && (val < JOY_N  + JOY_DEV))
          | ((val > JOY_NE - JOY_DEV) && (val < JOY_NE + JOY_DEV))
          | ((val > JOY_NW - JOY_DEV) && (val < JOY_NW + JOY_DEV)) );
 }
 
-static inline uint8_t JOY_down_pressed(void) {
+static uint8_t JOY_down_pressed(void) {
  uint16_t val = ADC_read_pad();
  return(   ((val > JOY_S  - JOY_DEV) && (val < JOY_S  + JOY_DEV))
          | ((val > JOY_SE - JOY_DEV) && (val < JOY_SE + JOY_DEV))
          | ((val > JOY_SW - JOY_DEV) && (val < JOY_SW + JOY_DEV)) );
 }
 
-static inline uint8_t JOY_left_pressed(void) {
+static uint8_t JOY_left_pressed(void) {
  uint16_t val = ADC_read_pad();
  return(   ((val > JOY_W  - JOY_DEV) && (val < JOY_W  + JOY_DEV))
          | ((val > JOY_NW - JOY_DEV) && (val < JOY_NW + JOY_DEV))
          | ((val > JOY_SW - JOY_DEV) && (val < JOY_SW + JOY_DEV)) );
 }
 
-static inline uint8_t JOY_right_pressed(void) {
+static uint8_t JOY_right_pressed(void) {
  uint16_t val = ADC_read_pad();
  return(   ((val > JOY_E  - JOY_DEV) && (val < JOY_E  + JOY_DEV))
          | ((val > JOY_NE - JOY_DEV) && (val < JOY_NE + JOY_DEV))
@@ -227,17 +255,20 @@ static inline uint8_t JOY_right_pressed(void) {
 
 #endif
 
-uint16_t rnval;
-uint16_t JOY_random(void) {
+static uint16_t rnval;
+// This was changed to "static inline .." to prevent multiple definiton error
+static inline uint16_t JOY_random(void) {
   rnval = (rnval >> 0x01) ^ (-(rnval & 0x01) & 0xB400);
   return rnval;
 }
 
-void JOY_setseed_default(void){
+// This was changed to "static inline .." to prevent multiple definiton error
+static void JOY_setseed_default(void){
   rnval = 0x1234;
 }
 
-void JOY_setseed(uint16_t seed){
+// This was changed to "static inline .." to prevent multiple definiton error
+static void JOY_setseed(uint16_t seed){
   rnval = seed;
 }
 

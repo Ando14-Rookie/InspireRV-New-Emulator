@@ -15,7 +15,8 @@
 
 #include <stdint.h>
 
-void WS2812BSimpleSend( GPIO_TypeDef * port, int pin, uint8_t * data, int len_in_bytes );
+// This was changed to "static inline .." to prevent multiple definiton error
+static inline void WS2812BSimpleSend( GPIO_TypeDef * port, int pin, uint8_t * data, int len_in_bytes );
 
 #ifdef WS2812BSIMPLE_IMPLEMENTATION
 
@@ -25,7 +26,7 @@ void WS2812BSimpleSend( GPIO_TypeDef * port, int pin, uint8_t * data, int len_in
 #error WS2812B Driver Requires FUNCONF_SYSTICK_USE_HCLK
 #endif
 
-void WS2812BSimpleSend( GPIO_TypeDef * port, int pin, uint8_t * data, int len_in_bytes )
+static inline void WS2812BSimpleSend( GPIO_TypeDef * port, int pin, uint8_t * data, int len_in_bytes )
 {
 	int port_id = (((intptr_t)port-(intptr_t)GPIOA)>>10);
 	RCC->APB2PCENR |= (RCC_APB2Periph_GPIOA<<port_id);  // Make sure port is enabled.
