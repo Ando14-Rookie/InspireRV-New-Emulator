@@ -1454,7 +1454,6 @@ void save_paint(uint16_t paint_no, color_t * data, uint8_t is_icon) {
     #endif
 }
 
-
 void save_opCode(uint16_t opcode_no, uint8_t * data) {
     if (opcode_no < 0 || opcode_no > page_status_addr_end) {
         #ifdef DEBUG_VERBOSE

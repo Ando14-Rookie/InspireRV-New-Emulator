@@ -170,7 +170,6 @@ Front View|Back View
 
 * [xPack riscv-none-elf-gcc](https://xpack-dev-tools.github.io/riscv-none-elf-gcc-xpack/docs/install/)
   * The RISC-V cross-compiler toolchain. Provides `riscv-none-elf-gcc, riscv-none-elf-size`, etc. The tools your Makefile uses to compile C code into firmware that runs on the CH32V003 chip.
-  
 
 * [Zadig](https://zadig.akeo.ie/#)
   * A Windows USB driver switcher. Only needed if you use the `wlink-win-x64 build`. It swaps the WCH-LinkE's driver from WCH's owned driver to WinUSB,so the `wlink CLI` can talk to it. **Not needed** if you use `wlink-win-x86`.
@@ -218,26 +217,27 @@ Ensure that the **environment** used in terminal is `MSYS2 MinGW64`, otherwise t
   
 * Step 2:
 
-  ![alt text](image\image-3.png)
+  ![alt text](image/image-3.png)
   * Ensure the working LED mode is Red which means RISCV mode.
 
 * Step 3:
 
   Side Left View|Side Right View
   :--------:|--------:
-  ![alt text](image\image-5.png)|![alt text](image\image-6.png)
+  ![alt text](image/image-5.png)|![alt text](image/image-6.png)
   * Connect this way.
 
 * Step 4:   
   * Go back to VS code, and make sure you are in project root path.
   * Setup `Zadig` everytime you want to flash via VS Code. Another way to flash is actually to do it manually via WCHLinkE software.
-    ![alt text](image\image-7.png)
+    ![alt text](image/image-7.png)
   * Type `make flash` or `make auto` using the **MSYS2 MinGW64** compiler (currently used compiler in this project).
 
 ## Typical Error
   * **Undetected USB Device**
     * Solution: ensure that the WCH-LinkRV has been updated in `Windows Search>Device Manager Manager>USB devices/USB controller managers`. If it has been updated, the **interface** dropdown list should now include `WCH-LinkRV`
-        ![alt text](image\image-9.png)
+        ![alt text](image/image-9.png)
+
   * **USB error: incompatible driver is installed for this interface**
     * Solution: reinstall driver with `WCH-LinkRV (Interface 0) --> WinUSB` in the Zadig software.
 
