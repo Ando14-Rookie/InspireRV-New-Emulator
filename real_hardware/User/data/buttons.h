@@ -213,7 +213,7 @@ static const int buttonsPanel[9] = {JOY_1, JOY_2, JOY_3, JOY_4, JOY_5,
 // right button seems cannot reliably detected.
 #define SPECIAL_BUTTON_DEVIATION 12
 
-/ @brief Array of buttons corresponding to the ADC values, for linear searching
+/// @brief Array of buttons corresponding to the ADC values, for linear searching
 static const int buttons[NUM_BUTTONS] = {BUTTON_0, BUTTON_1, BUTTON_2, BUTTON_3, BUTTON_4,
     BUTTON_5, BUTTON_6, BUTTON_7, BUTTON_8, BUTTON_9, BUTTON_10, BUTTON_11, BUTTON_12,
     BUTTON_13, BUTTON_14, BUTTON_15, BUTTON_16, BUTTON_17, BUTTON_18, BUTTON_19,

@@ -1,14 +1,13 @@
 # InspireRV + CH32V003
 
-InspireRV is a 8x8 LED matrix board that uses CH32V003 microcontroller, primarily used by students to learn more about binary numbers, simple programming or just to draw anything.This repository contains the emulator and hardware program for InspireRV project. 
+This repository contains various projects and utilities for
+working with the CH32V003 microcontroller.
 
-> Emulator currently only works on WindowOS.
-
-## New Hardware (InspireRV):
+## New hardware (InspireRV):
 
 Front View|Back View
 :--------:|--------:
-![alt text](image/image.png)|![alt text](image/image-1.png)
+![alt text](image\image.png)|![alt text](image\image-1.png)
 
 ## Project Structure
 
@@ -34,7 +33,7 @@ Front View|Back View
   * `driver.h`: Contains the most frequently used functions for the CH32V003.
   * `i2c_events.h`: Contains some frequently used I2C functions written manually.
   * `i2c_tx.c`, `i2c_tx.h`, `oled_min.c`, `oled_min.h`: Contains some frequently used functions for the SSD1306 OLED display. Comes from <https://github.com/eric15342335/inspirelab-game>
-  * `ws2812b_simple.h`: Contains one function for controlling the **WS2812B LEDs**.
+  * `ws2812b_simple.h`: Contains one function for controlling the WS2812B LEDs.
   You need to declare the following variables in your code:
   In `funconfig.h`:
   
@@ -50,80 +49,122 @@ Front View|Back View
     #include "ws2812b_simple.h"
     ```
 
-  * Use this function below to control the which of the 64 LEDs in array to turn on:
-    > static inline void **WS2812BSimpleSend( GPIO_TypeDef * port, int pin, uint8_t * data, int len_in_bytes);** 
-    * Example of usage:     `WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);`
-
-
   * Originally from the `extralibs` folder in <https://github.com/cnlohr/ch32v003fun>
 
 * `data`
   * `buttons.h`: Button ADC calibration data.
 
-    Contains the ADC value of each button in InspireRV. Even though this program is used for InspireRV, this is defined in `funconfig.h` because this whole program is derived from `InspireMatrix` code.
+    Contains two sets of data, one for the first prototype
+    `InspireMatrix` and one for the second prototype `InspireComputer` (which uses two ADC channels for buttons). If you are using the `InspireComputer`, declare the following in `funconfig.h`:
 
     ```c
-    #define INTERNAL_INSPIRE_MATRIX 1
+    #define INTERNAL_INSPIRE_MATRIX
     ```
 
-  * `colors.h`: Contains the color palette(to choose **new foreground/background** color), 64 LEDs saved color data (called `led_array`), and multiple function for the `InspireRV`
-    * Multiple functions:
-      > color_divide(color_t color, uint8_t divider)
+  * `colors.h`: Contains the color palette for the `InspireMatrix` or `InspireComputer`.
+  
+    One global variable `led_array[]` act as buffer to store the color data to be displayed.
+    Provides functions to manipulate the `led_array[]` buffer.
 
-      > set_color(uint8_t led, color_t color, uint8_t ledDivisor)
-
-      > set_color_no_div(uint8_t led, color_t color)
-
-      > fill_color(color_t color)
-
-      > fill_logo(void)
-
-      > clear(void)  
-
-  * `fonts.h`: This file is not used in this `InspireRV` program.
+  * `fonts.h`: Display numbers and characters in the size of 3x5 on WS2812B LEDs.
 
   * `music.h`: Frequencies, durations and functions for playing music using a buzzer.
   To play sound, use `JOY_sound()`.
 
 * `emulator`
-  * In the end, some part of the code is **not used for the emulator**.
-  * Support development of basic embedded system software on Windows/MacOS without requiring physical hardware.
+  * Support development of basic embedded system software on Windows/MacOS without requiring
+  physical hardware.
   * Aims to achieve function compatibility with the `ch32v003fun` library.
-    * `adriel's_2026_work`: Handles key press event for WindowsOS, MacOs and InspireRV. It also contains essential functions needed in **new_emulator_system**.
-      * *system_window_mac* and *system_window* is not used for emulator if you want to run the program in Windows 
-    * `emulator_driver`
-      * This folder contains the main function that handles each key press, specifically for `button 1 to 9` stored in **extra_function.c**
+  * `adriel's_2026_work`: Handles key press event for WindowsOS, MacOs and InspireRV. It also contains essential functions needed in `new_emulator_system`
 
-* `misc (UNUSED)`
-  * This file is derived from `InspireMatrix` old project. And, the file contained here is not used at all.
+* `i2c-comm`
+  * Communication between two boards using I2C protocol. The code contains a master and a slave.
+
+* `misc`
   * `libgcc.a` required by the `ch32v003fun` library on MacOS. See [here](misc/README.md) for more information.
+
+* `movingnum`
+  * Animations of numbers moving from right to left, bottom to top. Uses math instead of hard coding.
+  Demonstrates the use of `fonts.h`.
 
 * `new_emulator_system`
   * **What is Emulator?**
     * A piece of software (or hardware) that allows one device to act exactly like another.
-  * Make emulator in VS code's terminal that represents the 8x8 LED matrix in InspireRV.
-  * `Makefile` logic that starts and executes the emulatror program is stored in this folder.
+  * Make emulator in VS code's terminal that re presents the 8x8 LED matrix in InspireRV.
+  * All logic/code needed to create the emulator is contained here.
 
-* `coding_space`
-  * This folder contains multiple files that handle 2 main things related to Coding Space of InspireRV:
+* `paint`
+  * Paint on `InspireMatrix`.
 
-    * **coding_space**: handles the *whole* logic that runs the `Coding Space` feature of InspireRV emulator
-    
-    * **code_save_space**: handles the *whole* logic that save and load the 4-canvas of `Coding Space` of InspireRV emulator. There are **8 slots** where u can save into or load from.
+* `paint-cursor`
+  * Draw images on `InspireMatrix` with direction buttons and matrix buttons
+  * Connection:
+    * PD2: SW (Analog to Digital PIN)
+    * PC6: IN (WS2812B Data PIN)
 
-* `painting_space`
-  * This folder is somewhat similar to `coding_space` folder. It contains multiple files that handle 2 main things related to Painting Space of InspireRV:
+* `rv-asm`
+  * Coding RISC-V Compressed instructions on a board with buttons, and showing the result on the matrix.
+  * Originally from <https://github.com/mnurzia/rv>
 
-    * **painting_space**: only contains some of the functions that runs the `Painting Space` feature when u press any button from `1 to 9`. These functions are implemented in either 2 of these file called `led_matrix_screen.c` and `extra_function.c`
-    
-    * **code_save_space**: handles the *whole* logic that save and load the painting canva of `Painting Space` of InspireRV emulator. There are **8 slots** where u can save into or load from.
+* `rv-dis` (Working in progress)
+  * Disassemble RISC-V compressed instructions and print the result on an external OLED display (e.g. SSD1306).
+  * Originally from <https://github.com/michaeljclark/riscv-disassembler>
 
-* `xpacks\@xpack-dev-tools\...`
-  * This should be the file added automatically after you have installed `[xPack riscv-none-elf-gcc]`. Check what you need to setup below for further clarification.
+* `testing`
+  * This folder contains a bunch of test programs that are subject to change, and are not guaranteed to work for
+  your specific hardware.
 
-* `image`
-  * This folder contains a bunch of pictures used for `README.md` for documentation purpose.
+> [!NOTE]
+> Both `savepaint` and `save-rvasm` implements an filesystem structure.
 
+* `savepaint`
+  * Add saving and loading features.
+  * Combines `paint`, `movingcar`, `snake-game` and `tic-tac-toe`
+  * How to play:
+    * Before first icon appearing, hold Y to clear all the saved paints.
+    * After first icon appearing, use `UP` and `DOWN` to select apps.
+    * Use `LEFT` to use the selected app.
+    * Integrated `paint`:
+      * Press 64 (or `NUM_LEDS` buttons) to toggle between foreground color and background color.
+      * Press X or Y to change the foreground or background color.
+      * Press `UP` button to load a saved paint.
+      * Press `DOWN` button to save the current paint.
+    * Integrated `movingcar`:
+      * Currently 64 buttons are divided into left and right section.
+      * For each row (8 buttons), left four buttons correspond to `Left Wheel Forward`, `Left Wheel Backward`, `Right Wheel Forward`, `Right Wheel Backward`.
+      * For each row (8 buttons), right four buttons correspond to `Red`, `Green`, `Blue` and `Special Command` (Currently not used). The LEDs will display the colors when the motor is running.
+      * E.g. if buttons (counting from left) 1, 3, 5 are pressed, the car will go forward and displays red on the entire screen.
+      * Special: If all 8 buttons are pressed, the program will go back the first instruction to execute.
+    * Integrated `snake-game`:
+      * Press Y to start.
+      * Use `up / down / left / right` to move the snake.
+    * Integrated `tic-tac-toe`:
+      * Press any of the empty spot to play.
+    * When any of the app ends, press `Y` to go back to the main menu. (`NVIC_SystemReset()` is called)
+
+* `save-rvasm`
+  * Add saving and loading features
+  * Uses `rv-asm`.
+  * How to play:
+    * Before the load save menu appear, hold `X` to clear all the saved paints.
+    * Pick a saved program to load. Each program size is 32 instructions (hence 64 bytes / 1 page in the filesystem).
+    * Press `Y` to load the default program (Smile face) instead of loading a saved program.
+      You must choose this if no program are saved.
+    * Use `UP` and `DOWN` to navigate the instruction pages. The top 32 LEDs in light pink indicates
+      which page is currently displayed. E.g. 1 LED on => page 1 => Instruction 1 and 2.
+    * Use `Y` to execute the program.
+    * The button `32` LEDs are used to display the current instruction, with the active bit highlighted as `blue`.
+    * Notes when writing programs:
+      * You `MUST` end your program with an `ecall` (a.k.a `0x0073`) to exit the program.
+
+* `snake-game`
+  * Porting the classic snake game to `InspireMatrix`, which has `8x8`=`64` LEDs and `up / down / left / right` controls.
+
+* `tic-tac-toe`
+  * Play tic-tac-toe with a bot
+  * Press button to start
+  * Green is player while Red is the bot
+  * Try to win it (very easy)
 
 ## What to Setup Beforehand
 
@@ -133,7 +174,7 @@ Front View|Back View
 
 * [Zadig](https://zadig.akeo.ie/#)
   * A Windows USB driver switcher. Only needed if you use the `wlink-win-x64 build`. It swaps the WCH-LinkE's driver from WCH's owned driver to WinUSB,so the `wlink CLI` can talk to it. **Not needed** if you use `wlink-win-x86`.
-    ![alt text](image/image-8.png)
+    ![alt text](image.png)
     *  Turn ✔️ the `List All Devices` in Options.
     * Ensure to choose `WCH-Link(Interface 0)` & `WinUSB` as the driver to be switched..
 
@@ -166,9 +207,6 @@ Two options are available for compilation:
 * `make clean`
   * Removes all compiled files & directory from both the emulator folder and the hardware folder. Use this to clear old build results before compiling again.
 
-* `make auto`
-  * Automatically decide which one will be compiled and executed. The first priority is to check if `wlink` exist or not, so it can compile firmware and flash to `InspireRV`. The 2nd priority is to compile program and run the emulator in WindowOS.
-
 Ensure that the **environment** used in terminal is `MSYS2 MinGW64`, otherwise this error below may occur:
 * > [auto] Unknown environment: MSYS_NT-10.0-26200
 
@@ -200,13 +238,8 @@ Ensure that the **environment** used in terminal is `MSYS2 MinGW64`, otherwise t
   * **Undetected USB Device**
     * Solution: ensure that the WCH-LinkRV has been updated in `Windows Search>Device Manager Manager>USB devices/USB controller managers`. If it has been updated, the **interface** dropdown list should now include `WCH-LinkRV`
         ![alt text](image\image-9.png)
-
   * **USB error: incompatible driver is installed for this interface**
     * Solution: reinstall driver with `WCH-LinkRV (Interface 0) --> WinUSB` in the Zadig software.
-  
-  * **Error: invalid path 'nul' \n error: unable to add 'nul' to index**
-    * This error occurs when you want to do `git add`.
-    * Solution: manually delete the `nul` file or type this "rm nul" in the MSYS2 Mingw64 terminal.
 
 ## Credits
 
