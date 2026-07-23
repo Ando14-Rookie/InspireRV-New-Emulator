@@ -174,27 +174,31 @@ Ensure that the **environment** used in terminal is `MSYS2 MinGW64`, otherwise t
 
 ## How to Flash Firmware to InspireRV
 
-* Step 1:
-  ![alt text](image/image-2.png)
-  * Prepare WCH-LinkE and USB cable extension.
+* ### Method 1: By VS Code
+  * Step 1:
+    ![alt text](image/image-2.png)
+    * Prepare WCH-LinkE and USB cable extension.
+    
+  * Step 2:
+
+    ![alt text](image\image-3.png)
+    * Ensure the working LED mode is Red which means RISCV mode.
+
+  * Step 3:
+
+    Side Left View|Side Right View
+    :--------:|--------:
+    ![alt text](image\image-5.png)|![alt text](image\image-6.png)
+    * Connect this way.
+
+  * Step 4:   
+    * Go back to VS code, and make sure you are in project root path.
+    * Setup `Zadig` everytime you want to flash via VS Code. Another way to flash is actually to do it manually via WCHLinkE software.
+      ![alt text](image\image-7.png)
+    * Type `make flash` or `make auto` using the **MSYS2 MinGW64** compiler (currently used compiler in this project).
   
-* Step 2:
-
-  ![alt text](image\image-3.png)
-  * Ensure the working LED mode is Red which means RISCV mode.
-
-* Step 3:
-
-  Side Left View|Side Right View
-  :--------:|--------:
-  ![alt text](image\image-5.png)|![alt text](image\image-6.png)
-  * Connect this way.
-
-* Step 4:   
-  * Go back to VS code, and make sure you are in project root path.
-  * Setup `Zadig` everytime you want to flash via VS Code. Another way to flash is actually to do it manually via WCHLinkE software.
-    ![alt text](image\image-7.png)
-  * Type `make flash` or `make auto` using the **MSYS2 MinGW64** compiler (currently used compiler in this project).
+  * ### Method 2: By WCH-LinkUtilityE
+  * Step 1:
 
 ## Typical Error
   * **Undetected USB Device**

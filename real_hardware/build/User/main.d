@@ -1,4 +1,4 @@
-build/./User/main.o: User/main.c User/funconfig.h \
+build/./User/main.o: User/main.c User/main.h User/funconfig.h \
  User/./ch32v003fun/ch32v003_i2c.h User/./ch32v003fun/./ch32v003fun.h \
  User/./ch32v003fun/./../funconfig.h User/./data/colors.h \
  User/./data/buttons.h User/./data/../funconfig.h \
@@ -10,6 +10,7 @@ build/./User/main.o: User/main.c User/funconfig.h \
  User/./ch32v003fun/ws2812b_simple.h User/./ch32v003fun/ch32v003fun.h \
  User/./hardware_binary_game/binary_game.h \
  User/./hardware_binary_game/../ch32v003fun/ws2812b_simple.h
+User/main.h:
 User/funconfig.h:
 User/./ch32v003fun/ch32v003_i2c.h:
 User/./ch32v003fun/./ch32v003fun.h:

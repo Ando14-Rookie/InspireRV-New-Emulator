@@ -17,8 +17,10 @@
 #endif
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+// #include <time.h>
+#include <stdbool.h>
 #include "../data/colors.h"
+#include "../data/music.h"
 #include "../ch32v003fun/driver.h"
 #include "../ch32v003fun/ws2812b_simple.h"
 

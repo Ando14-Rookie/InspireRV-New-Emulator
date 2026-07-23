@@ -19,6 +19,15 @@ extern color_t led_array[NUM_LEDS];
 // clang-format off
 extern const color_t colors[NUM_LEDS];
 
+// Define which color to use
+extern const color_t blueColor;
+extern const color_t redColor;
+extern const color_t greenColor;
+extern const color_t yellowColor;
+extern const color_t orangeColor;
+extern const color_t purpleColor;
+extern const color_t offColor;
+
 // clang-format on
 
 extern const uint16_t num_colors;

@@ -23,13 +23,13 @@ ifeq ($(PLATFORM),MAC)
     TARGET   = switch_page
     # macOS needs ApplicationServices framework for CGKeyCode/keyboard tracking
     LIBS     = -framework ApplicationServices -framework AudioUnit -framework CoreAudio -framework CoreFoundation
-    RM       = rm -f
+    RM       = rm -rf
 else
     # Windows Cross-Compilation (MinGW setup matching your VS Code profile)
     CC       = x86_64-w64-mingw32-gcc
     TARGET   = switch_page.exe
     LIBS     = 
-    RM       = rm -f
+    RM       = rm -rf
 endif
 
 # ===================================================================
@@ -46,7 +46,7 @@ INCLUDES = -I"../emulator/adriel_2026_work" \
            -I"../emulator/adriel_2026_work/emulator_driver" \
            -I"../painting_space" \
            -I"../coding_space" \
-           -I"../binary_game" \
+           -I"../binary_game" 
 
 # Tells make where to find source files contextually
 VPATH    = ../emulator/adriel_2026_work \
@@ -61,7 +61,6 @@ VPATH    = ../emulator/adriel_2026_work \
 # ====================================================================
 # 3. FILES
 # ====================================================================
-
 SRCS    = switch_page.c \
           ../emulator-screen/led_matrix_screen.c \
           ../emulator/adriel_2026_work/system_window_mac.c \
@@ -77,7 +76,8 @@ SRCS    = switch_page.c \
           ../coding_space/coding_space.c \
           ../emulator-screen/brightness_control.c \
           ../binary_game/binary_game.c \
-          ../binary_game/random_number_canvas.c
+          ../binary_game/random_number_canvas.c \
+          ../binary_game/multiple_round.c
 
 OBJS    = switch_page.o \
           led_matrix_screen.o \
@@ -94,7 +94,8 @@ OBJS    = switch_page.o \
           coding_space.o \
           brightness_control.o \
           binary_game.o \
-          random_number_canvas.o
+          random_number_canvas.o \
+          multiple_round.o
 
 # Determine where to store the object files
 OBJDIR = myObjects
@@ -138,7 +139,7 @@ win:
 
 # Removes the target binary and the entire object file directory
 clean:
-	$(RM) *.o *.obj *.exe $(OBJDIR) $(TARGET) emulator switch_page
+	$(RM) *.o *.obj *.exe $(OBJDIR) $(TARGET) emulator switch_page 
 
 # # ─── Builds the PC-side emulator (switch_page.exe) ──────────────────
 # CC      = gcc # holds the compiler name

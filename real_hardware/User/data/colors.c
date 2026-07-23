@@ -16,6 +16,14 @@ const color_t colors[NUM_LEDS] = {
 
 };
 
+const color_t blueColor = {33, 33, 255};
+const color_t redColor = {0, 255, 0};
+const color_t greenColor = {255, 0, 0};
+const color_t yellowColor = {255, 255, 100};
+const color_t orangeColor = {255, 150, 15};
+const color_t purpleColor = {165, 100, 255};
+const color_t offColor = {0, 0, 0};
+
 // clang-format on
 
 const uint16_t num_colors = NUM_LEDS;
@@ -23,6 +31,7 @@ const uint16_t num_colors = NUM_LEDS;
 color_t color_divide(color_t color, uint8_t divider) {
     return (color_t){color.r / divider, color.g / divider, color.b / divider};
 }
+
 uint8_t ledDivisor = 10;
 
 void set_color(uint8_t led, color_t color, uint8_t ledDivisor) {

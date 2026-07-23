@@ -7,7 +7,9 @@ color_t onColorBlue = {100, 100, 255};  // Blue
 
 const color_t fixedColorGreen = {100, 255, 100}; // Green
 const color_t offColor = {0, 0, 0};           // Black
+const color_t orangeColor = {255, 150, 15}; // Orange color for binary game
 const color_t pointerColor = {255, 188, 100}; // Orange
+const color_t magentaColor = {255, 15, 245}; // Magenta
 const color_t solidColorRed = {255, 0, 0}; // Solid Red
 const color_t lightColorRed = {255, 200, 200};  // Light Red
 
@@ -72,10 +74,12 @@ void set_color(uint8_t led, color_t color) {
     led_array[led].b = smaller(color.b, color.b / divider);
 }
 
-//Fill each LED with color
+//Fill each LED with color with certain brightnessDivisor
 void fill_color(color_t color) {
+    // Change the led_array temporarily
     for (int i = 0; i < NUM_LEDS; i++) {
-        set_color(i, color);
+        // led_array[i] = fillScreenColor;
+        setColorLEDScaled(i, color, brightnessDivisor);
     }
 }
 

@@ -2,7 +2,8 @@
 
 // Function & variable prototype declaration
 // Randomize question number
-static int randomNumber; // Returns 0 to 15
+static int randomNumber;    // Returns 0 to 15
+static int8_t currentRound; // Ranges from 1 to 5 (ideally 0 to 4)
 // Check if user has answered correctly or just wanna quit the game
 static bool stopPlaying;
 static inline void renderBinaryGame(uint8_t selectedNumber);
@@ -10,8 +11,10 @@ static inline bool checkUserInputCol(uint8_t rowUser[8]);
 static inline void renderUserInput(void);
 static inline void handleScenario(uint8_t idx);
 
-// Private to this file
-typedef enum { BINARY_GAME_IDLE = 0, GAME_INPUT_CONFIRM, BINARY_GAME_CORRECT} GameState;
+static inline void playMelodyWithFlash(
+    const uint8_t * notes, const uint16_t * durations, uint8_t len, color_t color);
+static inline void flashCorrect(void);
+static inline void flashWrong(void);
 
 // By default, game state is BINARY_GAME_IDLE
 GameState currentGame;
@@ -21,6 +24,8 @@ void initBinaryGame(void) {
     stopPlaying = false;
     // Only move when pointer moves or user select something
     int buttonPressed = 0;
+    // In the beginning it starts at round 1 (ideally 0)
+    currentRound = 0;
     // By default, game state is BINARY_GAME_IDLE
     currentGame = BINARY_GAME_IDLE;
     // Seed the random number generator using the current time
@@ -38,7 +43,8 @@ void initBinaryGame(void) {
 
     // The game will keep running until user get the answer correct, unless
     // they wish to stop the game
-    while (!stopPlaying && currentPage == BINARY_GAME) {
+    while (!stopPlaying && currentPage == BINARY_GAME && currentRound <= 4) {
+
         // Activate keyboard I, J, K, L press input
         checkMoveButton();
 
@@ -67,14 +73,11 @@ void initBinaryGame(void) {
         uint8_t row = currentposition / GRID_COLS;
         uint8_t col = currentposition % GRID_COLS;
 
-        // Print same binary number, user input and button until user confirm or leave
-        
         // Update to compare button released and pressed state
         updateMoveButton();
 
-        // Show and print the BRIGHTNESS_CONTROL state
         // Only works after user move the pointer one by one
-        if (buttonPressed == 1) {       
+        if (buttonPressed == 1) {
             // Render normally
             renderBinaryGame(randomNumber);
             // Reset state
@@ -84,40 +87,73 @@ void initBinaryGame(void) {
         // Check what is being pressed
         if (row == 1 && currentGame == GAME_INPUT_CONFIRM) {
             // Undo the flip so it matches rowOneHandle indexing
-            uint8_t logicalCol = 7 - col;   
+            uint8_t logicalCol = 7 - col;
             // Handle each scenario
             handleScenario(logicalCol);
             // Continue rendering normally
             renderBinaryGame(randomNumber);
-            currentGame = BINARY_GAME_IDLE;
-        }
 
-        // After the quit button is handled: Return page to previous screen
-        if (currentPage == PAINTING_SPACE || currentGame == BINARY_GAME_CORRECT) {
-            // Draw real painting canvas data with brightness applied
-            for (int i = 0; i < NUM_LEDS; i++) {
-                setColorLEDScaled(i, savedColor[i], brightnessDivisor);
+            // Move to next round, Randomize next question & Reset everything to initial
+            // state
+            if (currentGame == BINARY_GAME_CONTINUE &&
+                (roundStatus[currentRound] != ROUND_RETRY)) {
+                printf("------------------------- \n");
+                printf(" Move to the next round !! \n");
+                printf("------------------------- \n");
+
+                // Seed the random number generator using the current time
+                srand(time(NULL));
+                // Randomize the question again
+                randomNumber = rand() % 16; // Returns 0 to 15
+
+                // Reset user input values
+                for (int i = 0; i <= 7; i++) {
+                    if (rowOneHandle[i] == 1) {
+                        rowOneHandle[i] = 0;
+                        // Default state = purple color
+                        setColorLEDScaled(i, normalColor, brightnessDivisor);
+                    }
+                }
+
+                currentRound += 1;
+                currentGame = BINARY_GAME_IDLE;
+
+                if (currentRound > 4) {
+                    // Stop playing and go back to the previous page, namely
+                    // `PAINTING_SPACE`
+                    currentPage = prevPageState;
+                    // Stop the while loop
+                    stopPlaying = true;
+                }
+
+                // Render normally
+                renderBinaryGame(randomNumber);
             }
-            // Quit the loop
-            stopPlaying = true;
+
+            // Reset current game progress to default after whether go to next round or
+            // not
             currentGame = BINARY_GAME_IDLE;
         }
     }
-    // Reset user input value
-    for(int i = 0; i <=7; i++){
-        // Reset only the user input value back to 0
-        if (rowOneHandle[i] == 1) {
-            rowOneHandle[i] = 0;
-            // Default state = purple color
-            setColorLEDScaled(i, normalColor, brightnessDivisor);
+
+    // Reset user input value and round-status LEDs back to the saved canvas
+    for (int i = 0; i <= 7; i++) {
+        // Reset roundStatus and roundEntered value
+        if (i < 5) {
+            roundStatus[i] = ROUND_IDLE;
+            roundEntered[i] = 0;
         }
     }
 
     // Reset the game state (2nd time)
     currentGame = BINARY_GAME_IDLE;
-    // As soon as the function stop, render back the real saved canva as seen BELOW
 
-    // Draw pointer ON TOP visually (only effect led_array), doesn't touch
+    // As soon as the function stop, render back the real saved canvas
+    for (int i = 0; i < NUM_LEDS; i++) {
+        setColorLEDScaled(i, savedColor[i], brightnessDivisor);
+    }
+
+    // Draw pointer ON TOP visually (only affects led_array), doesn't touch savedColor
     set_color(currentposition, pointerColor);
     printf("Pointer current position is %d\n ", currentposition);
 
@@ -125,10 +161,10 @@ void initBinaryGame(void) {
     WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
 }
 
-/** 
+/**
  * @brief  Show and print the `BINARY_GAME` screen everytime pointer moves or answered
  * @param selectedNumber Which random binary question to be shown
- **/ 
+ **/
 static inline void renderBinaryGame(uint8_t selectedNumber) {
     // Type of color that should be turned on
     // val can be 0, 1, 2, 3
@@ -136,8 +172,9 @@ static inline void renderBinaryGame(uint8_t selectedNumber) {
 
     // Erase old screen, make it all black
     fill_color(offColor);
-    // Handle the Row 1
+    // Handle the Row 1 & Row 0
     renderUserInput();
+    renderGameRounds();
 
     // Draw the hardcoded S logo on rows 1-7
     for (int arrayRow = 0; arrayRow < 5; arrayRow++) {
@@ -179,7 +216,7 @@ static inline void handleScenario(uint8_t idx) {
         if (rowOneHandle[idx] == 0) {
             // Debug
             // printf("Current rowOne is %d \n", rowOneHandle[index]);
-            
+
             // Change state to selected
             rowOneHandle[idx] = 1;
         }
@@ -189,30 +226,33 @@ static inline void handleScenario(uint8_t idx) {
         }
     }
     // Handle the quit button
-    else if(idx == 0){
+    else if (idx == 0) {
         printf("QUIT - Stop Playing Binary Game!");
         // Stop playing and go back to the previous page, namely `PAINTING_SPACE`
-        currentPage = prevPageState; 
-        //Stop the while loop
+        currentPage = prevPageState;
+        // Stop the while loop
         stopPlaying = true;
     }
     // Handle the confirm button
-    else if(idx == 7){
+    else if (idx == 7) {
         // Handle the confirm button
-        if(checkUserInputCol(rowOneHandle)){
+        if (checkUserInputCol(rowOneHandle)) {
             // Change current game state
-            currentGame = BINARY_GAME_CORRECT;
-            printf("CORRECT - Your answer matches the corresponding decimal value!");
+            currentGame = BINARY_GAME_CONTINUE;
             // Play the short right answer animation with sound here
-            
+            flashCorrect();
+            printf("CORRECT - Your answer matches the corresponding decimal value!");
         }
-        else{
+        else {
             // Change current game state
             currentGame = BINARY_GAME_IDLE;
-            printf("WRONG - Well played, try again!");
             // Play the short wrong answer animation with sound here
-
+            flashWrong();
+            printf("WRONG - Well played, try again!");
         }
+
+        // Handle whether should stay/proceed to the next round
+        handleGameRounds(checkUserInputCol(rowOneHandle), currentRound);
     }
 }
 
@@ -259,9 +299,10 @@ static inline bool checkUserInputCol(uint8_t rowUser[8]) {
     // col[0] is rightmost; col[7] is leftmost
 
     /* HOW DOES THE CODE WORK??
-    
-    It only shifts the literal number 1,  a completely separate, brand-new value, to build the temporary 8-bit binary (0b). 
-    The array is only ever read (via rowUser[i]), never shifted.
+
+    It only shifts the literal number 1,  a completely separate, brand-new value, to build
+    the temporary 8-bit binary (0b). The array is only ever read (via rowUser[i]), never
+    shifted.
 
     | i | rowUser[i] | shift = 5-i | Truthy? | Expression    | v before | v after |
     | - | --------   | ----------- | ------- | ------------- | -------- | ------- |
@@ -269,15 +310,65 @@ static inline bool checkUserInputCol(uint8_t rowUser[8]) {
     | 3 | 0          | 2           | false   | 0             | 0000     | 0000    |
     | 4 | 1          | 1           | true    | 1 << 1 = 0010 | 0000     | 0010    |
     | 5 | 1          | 0           | true    | 1 << 0 = 0001 | 0010     | 0011    |
-    
+
     */
 
     uint8_t v = 0;
     for (int i = 2; i <= 5; i++) {
-        int shift = 5 - i;  // index 2 -> shift 3, index 5 -> shift 0
+        int shift = 5 - i; // index 2 -> shift 3, index 5 -> shift 0
         v |= (rowUser[i] ? (1 << shift) : 0);
     }
 
     // Compare if user input and binary question is the same or not
-    return (v && randomNumber);
+    return (v == randomNumber);
+}
+
+/**
+ * @brief Create short visual to show if user answer is correct or false
+ * @param notes List of notes to use
+ * @param duration How long should each note/blinking behaviour last
+ * @param len How many times should it loops
+ * @param color What color should be used for the blinking
+ **/
+static inline void playMelodyWithFlash(
+    const uint8_t * notes, const uint16_t * durations, uint8_t len, color_t color) {
+    // Clear the screen first
+    clear();
+
+    // Run the visual and audio
+    for (uint8_t i = 0; i < len; i++) {
+        // Fills Screen with Green/Red
+        fill_color(color);
+
+        // Prints the emulator screen
+        WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
+
+        // Plays note for its own duration (blocking or non-blocking, your driver's call)
+        playEmuNote(notes[i], durations[i]);
+
+        // Fills Screen with OFF LED between notes
+        fill_color(offColor);
+
+        // Print emulator screen
+        WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
+
+        // Brief gap so blinks look distinct, not one continuous glow
+        Delay_Ms(50);
+    }
+}
+
+/// @brief Play the correct visual
+static inline void flashCorrect(void) {
+    // Used higher notes, so that the sound is clearer
+    static const uint8_t notes[] = {NOTE_B5, NOTE_D6, NOTE_FS6, NOTE_B6};
+    static const uint16_t durations[] = {240, 240, 240, 450};
+    playMelodyWithFlash(notes, durations, 4, confirmColorCorrect);
+}
+
+/// @brief Play the wrong visual
+static inline void flashWrong(void) {
+    // Used higher notes, so that the sound is clearer
+    static const uint8_t notes[] = {NOTE_A5, NOTE_GS5};
+    static const uint16_t durations[] = {400, 450};
+    playMelodyWithFlash(notes, durations, 2, confirmColorWrong);
 }

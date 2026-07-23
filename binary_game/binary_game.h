@@ -1,19 +1,26 @@
 #ifndef _BINARY_GAME_H
 #define _BINARY_GAME_H
 
+#include "../data/buttons.h"
+#include "../data/colors.h"
+#include "../emulator/adriel_2026_work/emulator_driver/emulator_driver.h"
+#include "./multiple_round.h"
+#include "./random_number_canvas.h"
+
 #include <stdlib.h>
 #include <time.h>
-#include "../emulator/adriel_2026_work/emulator_driver/emulator_driver.h"
-#include "./random_number_canvas.h"
-#include "../data/buttons.h"
-#include "../data/colors.h" 
 
 #define defaultLogoColor onColorBlue // Blue
 
-#define normalColor onColorPurple // Purple
-#define selectedColor onColorYellow // Yellow
-#define returnColor solidColorRed // Red
-#define confirmColor onColorGreen // Green
+#define normalColor onColorPurple        // Purple
+#define selectedColor onColorYellow      // Yellow
+#define confirmColorWrong solidColorRed  // Red
+#define confirmColorCorrect onColorGreen // Green
+
+typedef enum { BINARY_GAME_IDLE = 0, GAME_INPUT_CONFIRM, BINARY_GAME_CONTINUE } GameState;
+
+// Global variable
+extern GameState currentGame;
 
 /// @brief Handle the logic of the whole binary game
 extern void initBinaryGame(void);
