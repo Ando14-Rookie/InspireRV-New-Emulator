@@ -12,7 +12,7 @@
 
 #define normalColor onColorPurple // Purple
 #define selectedColor onColorYellow // Yellow
-#define returnColor solidColorRed // Red
+#define binaryGamereturnColor solidColorRed // Red
 #define confirmColor onColorGreen // Green
 
 /// @brief Handle the logic of the whole binary game

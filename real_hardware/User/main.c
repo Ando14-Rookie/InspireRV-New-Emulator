@@ -103,13 +103,15 @@ typedef enum _app_selected {
 	rv_music = 8,
     rv_paint = 9
 } app_selected;
-app_selected appChosen = rv_paint;
+
+// app_selected appChosen = rv_paint;
+// TO BE DELETED BELOW
+app_selected appChosen = robot_car;
 
 //RV Paints defines
 void painting_routine(void);
 void iconShow(void);
 //void display_stored_paints(void);
-
 
 void choose_save_page(app_selected app_current);
 void choose_load_page(app_selected app_current);
@@ -150,7 +152,6 @@ Options 0b10
 10 101 xxx | Load saved Program (0~7)
 10 110 xxx | Load saved Music (0~7)
 10 111 xxx | Load saved Drawing (0~7)
-
 
 loop variables 0b11
 11 000 xxx | skipifCarry(minus), decrease with xxx:(0~7) until < 0
@@ -279,7 +280,225 @@ uint8_t brightness_divisor = 10;// >0
 uint8_t normal_brightness_divisor = 10;// >0
 #define LED_PINS GPIOA, 2
 
+// ============================================================
+// >>> ADDED FOR ROBOT CAR MODE - START (CORRECTED) <<<
+// ============================================================
+//
+// FIX #1 (critical): the pin macros used to point at C6, C7, C0, D4 —
+// none of which matched the actual wiring, and PD4 in particular
+// collides with ADC_read()'s GPIO_Ain7_D4 channel in driver.h.
+// Real wiring is:
+//   L0 -> PA1   L1 -> PC5   R0 -> PC6   R1 -> PC7
+// Verified against driver.h: none of these four pins are used by any
+// ADC/button/joystick read in this codebase, so they're safe as plain
+// digital outputs.
+//
+#define MOTOR_R0  GPIOv_from_PORT_PIN(GPIO_port_C, 6) 
+#define MOTOR_R1  GPIOv_from_PORT_PIN(GPIO_port_C, 7) 
+#define MOTOR_L0  GPIOv_from_PORT_PIN(GPIO_port_C, 5)
+#define MOTOR_L1  GPIOv_from_PORT_PIN(GPIO_port_A, 1)
 
+// Software PWM period in microseconds. 1000us = 1kHz switching rate.
+#define MOTOR_PWM_PERIOD_US   1000
+
+// 0-100. Adjust this (or wire it to a joystick axis / button later)
+// to control car speed. 100 = full speed = same as plain on/off control.
+volatile uint8_t motor_speed_percent = 100;
+
+void robot_init(void) {
+    // FIX #2: GPIO_port_A must be enabled since L0 now lives on PA1.
+    // Port D is no longer touched by any motor pin, so it's dropped
+    // entirely (avoids fighting over PD4, which the ADC uses).
+    GPIO_port_enable(GPIO_port_A);
+    GPIO_port_enable(GPIO_port_C);
+
+    GPIO_pinMode(MOTOR_L0, GPIO_pinMode_O_pushPull, GPIO_Speed_10MHz);
+    GPIO_pinMode(MOTOR_L1, GPIO_pinMode_O_pushPull, GPIO_Speed_10MHz);
+    GPIO_pinMode(MOTOR_R0, GPIO_pinMode_O_pushPull, GPIO_Speed_10MHz);
+    GPIO_pinMode(MOTOR_R1, GPIO_pinMode_O_pushPull, GPIO_Speed_10MHz);
+
+    // Force both motors to a known stopped state (0,0) on entry.
+    GPIO_digitalWrite_lo(MOTOR_L0);
+    GPIO_digitalWrite_lo(MOTOR_L1);
+    GPIO_digitalWrite_lo(MOTOR_R0);
+    GPIO_digitalWrite_lo(MOTOR_R1);
+}
+
+// ------------------------------------------------------------------
+// STAGE 1 TEST: plain on/off control, no PWM. Drives each of the 4
+// pins high/low one at a time with console prints, so wiring and
+// motor direction can be confirmed with a multimeter or by watching
+// the wheels before trusting the PWM path.
+// ------------------------------------------------------------------
+void robot_pin_test(void) {
+    robot_init();
+
+    printf("TEST: Left motor forward (L0=1, L1=0)\n");
+    GPIO_digitalWrite_hi(MOTOR_L0); GPIO_digitalWrite_lo(MOTOR_L1);
+    Delay_Ms(1000);
+
+    printf("TEST: Left motor reverse (L0=0, L1=1)\n");
+    GPIO_digitalWrite_lo(MOTOR_L0); GPIO_digitalWrite_hi(MOTOR_L1);
+    Delay_Ms(1000);
+
+    printf("TEST: Left motor stop (L0=0, L1=0)\n");
+    GPIO_digitalWrite_lo(MOTOR_L0); GPIO_digitalWrite_lo(MOTOR_L1);
+    Delay_Ms(500);
+
+    printf("TEST: Right motor forward (R0=1, R1=0)\n");
+    GPIO_digitalWrite_hi(MOTOR_R0); GPIO_digitalWrite_lo(MOTOR_R1);
+    Delay_Ms(1000);
+
+    printf("TEST: Right motor reverse (R0=0, R1=1)\n");
+    GPIO_digitalWrite_lo(MOTOR_R0); GPIO_digitalWrite_hi(MOTOR_R1);
+    Delay_Ms(1000);
+
+    printf("TEST: Right motor stop (R0=0, R1=0)\n");
+    GPIO_digitalWrite_lo(MOTOR_R0); GPIO_digitalWrite_lo(MOTOR_R1);
+    Delay_Ms(500);
+
+    printf("Pin test done.\n");
+}
+
+/** 
+ * @brief Determine PWM speed motot control
+ * 
+ * STAGE 2: software PWM speed control.
+ * For an L9110-style driver, speed control means PWM-ing whichever
+ * pin is "active" for the chosen direction, while the OTHER pin of
+ * that motor stays low the whole period:
+ * dir > 0  -> PWM on pin_a, pin_b held low
+ * dir < 0  -> PWM on pin_b, pin_a held low
+ * dir == 0 -> both low (stop)
+ * One call runs exactly one PWM period (MOTOR_PWM_PERIOD_US long).
+ * 
+ * @param pin_a a GPIO pins wired to a single motor's driver channel
+ * @param pin_b a GPIO pins wired to a single motor's driver channel
+ * @param dir Signed value that picks which of the two pins gets the PWM signal
+ * @param duty_percent Control the average power and voltage sent to a motor
+ **/
+static inline void motor_pwm_step(uint32_t pin_a, uint32_t pin_b, int8_t dir, uint8_t duty_percent) {
+    if (dir == 0) {
+        GPIO_digitalWrite_lo(pin_a);
+        GPIO_digitalWrite_lo(pin_b);
+        Delay_Us(MOTOR_PWM_PERIOD_US);
+        return;
+    }
+
+    if (duty_percent > 100) duty_percent = 100;
+    uint32_t on_us  = (MOTOR_PWM_PERIOD_US * (uint32_t)duty_percent) / 100;
+    uint32_t off_us = MOTOR_PWM_PERIOD_US - on_us;
+
+    uint32_t active_pin = (dir > 0) ? pin_a : pin_b;
+    uint32_t idle_pin   = (dir > 0) ? pin_b : pin_a;
+
+    // printf("Active pin is %d whereas idle pin is %d \n", active_pin, idle_pin);
+
+    GPIO_digitalWrite_lo(idle_pin);
+
+    if (on_us) {
+        GPIO_digitalWrite_hi(active_pin);
+        Delay_Us(on_us);
+    }
+    GPIO_digitalWrite_lo(active_pin);
+    if (off_us) {
+        Delay_Us(off_us);
+    }
+}
+
+// Full-speed convenience wrappers, kept in case anything else calls
+// these directly. dir: 1 = forward, -1 = backward, 0 = stop
+void motor_left(int8_t dir) {
+    if (dir > 0)      { GPIO_digitalWrite_hi(MOTOR_L0); GPIO_digitalWrite_lo(MOTOR_L1); }
+    else if (dir < 0) { GPIO_digitalWrite_lo(MOTOR_L0); GPIO_digitalWrite_hi(MOTOR_L1); }
+    else              { GPIO_digitalWrite_lo(MOTOR_L0); GPIO_digitalWrite_lo(MOTOR_L1); }
+}
+void motor_right(int8_t dir) {
+    if (dir > 0)      { GPIO_digitalWrite_hi(MOTOR_R0); GPIO_digitalWrite_lo(MOTOR_R1); }
+    else if (dir < 0) { GPIO_digitalWrite_lo(MOTOR_R0); GPIO_digitalWrite_hi(MOTOR_R1); }
+    else              { GPIO_digitalWrite_lo(MOTOR_R0); GPIO_digitalWrite_lo(MOTOR_R1); }
+}
+
+void robot_car_routine(void) {
+    //TO BE DELETED
+    
+    robot_init();
+    // Number of PWM periods to run before re-checking the joystick,
+    // so response time still feels like the original 50ms poll.
+    const uint16_t pwm_cycles_per_poll = 50000 / MOTOR_PWM_PERIOD_US;
+
+    //Delete the InspireRV logo in the beginning
+    for (int i = 0; i < NUM_LEDS; i++) {
+        canvas[i].layer = CLEARROUND_LAYER;
+        canvas[i].color = clearground;
+    }
+
+    // Persists across iterations, declared OUTSIDE while(1)
+    // int8_t prev_dir_l = 0, prev_dir_r = 0;  
+    
+    while (1) {
+        int8_t dir_l = 0, dir_r = 0;
+
+        // Adriel's Edit
+        if (JOY_2_pressed()){
+            // printf("Move Forward... \n");
+            dir_l = 1;  
+            dir_r = 1;
+        }
+        else if (JOY_8_pressed()){
+            // printf("Move Backward... \n");
+            dir_l = -1; 
+            dir_r = -1;
+        }
+        else if (JOY_4_pressed()){
+            // printf("Move Left... \n");
+            dir_l = -1; 
+            dir_r = 1;  
+        }
+        else if (JOY_6_pressed()){
+            // printf("Move Right... \n");
+            dir_l = 1;  
+            dir_r = -1; 
+        }
+        else if (JOY_9_pressed()){
+            appChosen = rv_paint; 
+            break; 
+        }
+
+        // TO BE UNCOMMENTED
+        // if (JOY_up_pressed())         { dir_l = 1;  dir_r = 1;  }
+        // else if (JOY_down_pressed())  { dir_l = -1; dir_r = -1; }
+        // else if (JOY_left_pressed())  { dir_l = -1; dir_r = 1;  }
+        // else if (JOY_right_pressed()) { dir_l = 1;  dir_r = -1; }
+
+        for (uint16_t i = 0; i < pwm_cycles_per_poll; i++) {
+            motor_pwm_step(MOTOR_L1, MOTOR_L0, dir_l, motor_speed_percent);
+            motor_pwm_step(MOTOR_R1, MOTOR_R0, dir_r, motor_speed_percent);
+        }
+    }
+
+    // motors off on exit
+    GPIO_digitalWrite_lo(MOTOR_L0); GPIO_digitalWrite_lo(MOTOR_L1);
+    GPIO_digitalWrite_lo(MOTOR_R0); GPIO_digitalWrite_lo(MOTOR_R1);
+    
+    Delay_Us(200);
+}
+
+// Checks how long button 9 is held.
+// Returns: 0 = not pressed, 1 = short tap, 2 = long hold (1.5+ sec)
+uint8_t check_JOY9_hold(void) {
+    if (!JOY_9_pressed()) return 0;
+    uint16_t held_ms = 0;
+    while (JOY_9_pressed() && held_ms < 1500) {
+        Delay_Ms(50);
+        held_ms += 100;
+    }
+    return (held_ms >= 1500) ? 2 : 1;
+}
+
+// ============================================================
+// >>> ADDED FOR ROBOT CAR MODE - END <<<
+// ============================================================
 
 int main(void) {
     SystemInit();
@@ -306,6 +525,14 @@ int main(void) {
         }
         Delay_Ms(1);
     }
+
+    // >>> ADDED FOR ROBOT CAR MODE - START <<<
+    // Hold button 1 during startup to enter Robot Car mode
+    if (JOY_1_pressed()) {
+        appChosen = robot_car;
+        printf("Entering Robot Car mode\n");
+    }
+    // >>> ADDED FOR ROBOT CAR MODE - END <<<
 
     print_status_storage();
 
@@ -334,13 +561,22 @@ int main(void) {
 //**********************************************//
 //////////////////////////////////////////////////
 void appRunningRoutine(void){
+    // TO BE DELETED: Test out robot code
+    appChosen = robot_car;// delete this later
+
     while (1) {
         switch (appChosen) {
+            printf("appChosen now is %d \n", appChosen);
             case rv_paint:
+                // TO BE UNCOMMENT: DON'T USE FOR NOW
                 painting_routine();
                 break;
             case rv_code:
-                rv_code_routine();
+                // rv_code_routine();
+                break;
+            // >>> ADDED FOR ROBOT CAR MODE <<<
+            case robot_car:
+                robot_car_routine();
                 break;
             default:
                 red_screen();
@@ -350,7 +586,7 @@ void appRunningRoutine(void){
     }
     printf("App Exited\n");
 }
-
+ 
 
 
 //////////////////////////////////////////////////
@@ -468,8 +704,14 @@ void rv_code_routine(void) {
                 }
                 flushCanvas();
             } else if (JOY_9_pressed()){
-                appChosen = rv_paint;
-                printf("Exit paint mode, entering coding\n");
+                uint8_t hold_result = check_JOY9_hold();
+                if (hold_result == 2) {
+                    appChosen = robot_car;
+                    printf("Entering Robot Car mode (long press)\n");
+                } else {
+                    appChosen = rv_paint;
+                    printf("Exit paint mode, entering coding\n");
+                }
                 Delay_Ms(500);
                 break;
             }
@@ -1231,9 +1473,15 @@ void painting_routine(void) {
                 flushCanvas();*/
             }
             else if (JOY_9_pressed()) {
-                // save paint
-                appChosen = rv_paint;
-                printf("Clear\n");
+                uint8_t hold_result = check_JOY9_hold();
+                if (hold_result == 2) {
+                    appChosen = robot_car;
+                    printf("Entering Robot Car mode (long press)\n");
+                } else {
+                    // save paint
+                    appChosen = rv_paint;
+                    printf("Clear\n");
+                }
                 Delay_Ms(500);
                 break;
             }
@@ -1285,14 +1533,6 @@ void iconShow(void){
     }
     WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
 }
-
-
-
-
-
-
-
-
 
 
 //////////////////////////////////////////////////
@@ -1453,7 +1693,6 @@ void save_paint(uint16_t paint_no, color_t * data, uint8_t is_icon) {
     printf("Paint %d saved\n", paint_no);
     #endif
 }
-
 
 void save_opCode(uint16_t opcode_no, uint8_t * data) {
     if (opcode_no < 0 || opcode_no > page_status_addr_end) {
@@ -1662,7 +1901,6 @@ void choose_load_page(app_selected app_current) {
     }
     WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);*/
 }
-
 
 void choose_save_page(app_selected app_current) {
     led_display_paint_page_status(app_current);

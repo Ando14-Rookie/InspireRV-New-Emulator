@@ -3,8 +3,10 @@
 // Function & variable prototype declaration
 // Randomize question number
 static int randomNumber; // Returns 0 to 15
+// Check if user has answered correctly or just wanna quit the game
+static bool stopPlaying;
 static inline void renderBinaryGame(uint8_t selectedNumber);
-static inline void checkUserInputCol(uint8_t value, int col[8]);
+static inline uint8_t checkUserInputCol(uint8_t receivedUser[]);
 static inline void renderUserInput(void);
 static inline void handleScenario(uint8_t idx);
 
@@ -12,9 +14,8 @@ static inline void handleScenario(uint8_t idx);
 typedef enum { BINARY_GAME_IDLE = 0, BINARY_GAME_CORRECT, BINARY_GAME_WRONG } GameState;
 
 void initBinaryGame(void) {
-
     // Check if user has answered correctly or just wanna quit the game
-    bool continuePlay = false;
+    stopPlaying = false;
     // Only move when pointer moves or user select something
     int buttonPressed = 0;
     int enterPressed = 0;
@@ -33,7 +34,7 @@ void initBinaryGame(void) {
 
     // The game will keep running until user get the answer correct, unless
     // they wish to stop the game
-    while (!continuePlay && currentPage == BINARY_GAME) {
+    while (!stopPlaying && currentPage == BINARY_GAME) {
         // Activate keyboard I, J, K, L press input
         checkMoveButton();
 
@@ -55,7 +56,6 @@ void initBinaryGame(void) {
             buttonPressed = 1;
         }
         if (BTN_JUST_PRESSED(Enter_Key)) {
-            currentposition = (NUM_LEDS + currentposition - 1) % NUM_LEDS;
             enterPressed = 1;
         }
 
@@ -79,8 +79,10 @@ void initBinaryGame(void) {
 
         // Check what is being pressed
             if (row == 1 && enterPressed == 1) {
+                // Undo the flip so it matches rowOneHandle indexing
+                uint8_t logicalCol = 7 - col;   
                 // Handle each scenario
-                handleScenario(col);
+                handleScenario(logicalCol);
                 // Continue rendering normally
                 renderBinaryGame(randomNumber);
                 enterPressed = 0;
@@ -96,6 +98,23 @@ void initBinaryGame(void) {
             }
         }
     }
+    // Reset user input value
+    for(int i = 0; i <=7; i++){
+        // Reset only the user input value back to 0
+        if (rowOneHandle[i] == 1) {
+            rowOneHandle[i] = 0;
+            // Default state = purple color
+            setColorLEDScaled(i, normalColor, brightnessDivisor);
+        }
+    }
+    // As soon as the function stop, render back the real saved canva as seen BELOW
+
+    // Draw pointer ON TOP visually (only effect led_array), doesn't touch
+    set_color(currentposition, pointerColor);
+    printf("Pointer current position is %d\n ", currentposition);
+
+    // Print the emulator screen
+    WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
 }
 
 /** 
@@ -143,28 +162,37 @@ static inline void renderBinaryGame(uint8_t selectedNumber) {
 }
 
 /**
- * @brief Handle the user input
- * , confirm button and quit button
+ * @brief Handle the user input, confirm button and quit button
+ * @param idx Current position in terms of column, range for column is `0 to 7`
  **/
 static inline void handleScenario(uint8_t idx) {
-    // Flip and tailor idx to rowOneHandle
-    uint8_t index = 7-idx;
-
     // Handle User Input by changing to selected
     // Only works for user input
     if (idx >= 2 && idx <= 5) {
         if (rowOneHandle[idx] == 0) {
-            // Change color
-            setColorLEDScaled(idx, selectedColor, brightnessDivisor);
+            // Debug
+            // printf("Current rowOne is %d \n", rowOneHandle[index]);
+            
             // Change state to selected
             rowOneHandle[idx] = 1;
         }
         else {
-            // Change color by returning to normalColor
-            setColorLEDScaled(idx, normalColor, brightnessDivisor);
             // Change state to unselected
             rowOneHandle[idx] = 0;
         }
+    }
+    // Handle the quit button
+    else if(idx == 0){
+        printf("QUIT - Stop Playing Binary Game!");
+        // Stop playing and go back to the previous page, namely `PAINTING_SPACE`
+        currentPage = prevPageState; 
+        //Stop the while loop
+        stopPlaying = true;
+    }
+    // Handle the confirm button
+    else if(idx == 7){
+        printf("CONFIRM - Submitting Current User Answer...");
+
     }
 }
 
@@ -191,7 +219,7 @@ static inline void renderUserInput(void) {
         }
         else if (rowOneHandle[col] == -1) {
             // Quit button state = red color
-            setColorLEDScaled(idx, returnColor, brightnessDivisor);
+            setColorLEDScaled(idx, binaryGamereturnColor, brightnessDivisor);
         }
         else if (rowOneHandle[col] == -2) {
             // Confirm button state = green color
@@ -209,14 +237,10 @@ static inline void renderUserInput(void) {
  * @brief Handle the logic when user clicks a page button in Row 0
  * @param col The selected column from Row 0
  **/
-static inline void checkUserInputCol(uint8_t value, int col[8]) {
+static inline uint8_t checkUserInputCol(uint8_t receivedUser[]) {
     // col[0] is rightmost; col[7] is leftmost
-    col[7] = 0;
-    col[6] = 0;
-    col[5] = (value >> 3) & 1; // bit 3
-    col[4] = (value >> 2) & 1; // bit 2
-    col[3] = (value >> 1) & 1; // bit 1
-    col[2] = (value >> 0) & 1; // bit 0
-    col[1] = 0;
-    col[0] = 0;
+    uint8_t v = 0;
+    for (int i = 0; i <= 3; i++) 
+        v |= (receivedUser[i] ? (1 << i) : 0);
+    return v;
 }
