@@ -33,5 +33,12 @@ void renderGameRounds(void);
  **/
 void handleGameRounds(bool answerCorrect, uint8_t currentRound);
 
+/**
+ * @brief Render the graph shown in the final scene after playing 5 game of round
+ **/
+void renderResultsGraph(void);
+
+/// @brief Function that handle the graph rendering after playing 
+void flashGameComplete(void);
 
 #endif

@@ -58,9 +58,11 @@ void appRunningRoutine(void){
             case rv_paint:
                 painting_routine();
                 break;
+            #if !TESTING_MODE
             case rv_code:
                 rv_code_routine();
                 break;
+            #endif
             default:
                 red_screen();
                 Delay_Ms(1000);
@@ -351,35 +353,38 @@ void rvCodeRun(uint8_t direct_result){
                         sound_dur = 50+var_line_storage[line_run]*100;
                         break;
                     case _RVCODE_OPCODE_SOUNDFREQ:
-                        switch(var_line_storage[line_run]){
-                            case 0:
-                                sound_freq = NOTE_C4;
-                                break;
-                            case 1:
-                                sound_freq = NOTE_D4;
-                                break;
-                            case 2:
-                                sound_freq = NOTE_E4;
-                                break;
-                            case 3:
-                                sound_freq = NOTE_F4;
-                                break;
-                            case 4:
-                                sound_freq = NOTE_G4;
-                                break;
-                            case 5:
-                                sound_freq = NOTE_A4;
-                                break;
-                            case 6:
-                                sound_freq = NOTE_B4;
-                                break;
-                            case 7:
-                                sound_freq = NOTE_C5;
-                                break;
-                            default:
-                                sound_freq = NOTE_C4;
-                                break;
-                        }
+                        static const uint16_t noteTable[8] = { NOTE_C4, NOTE_D4, NOTE_E4, NOTE_F4, NOTE_G4, NOTE_A4, NOTE_B4, NOTE_C5 };
+                        sound_freq = noteTable[var_line_storage[line_run] & 0x07];
+                        // SAME AS BELOW: 
+                        // switch(var_line_storage[line_run]){
+                        //     case 0:
+                        //         sound_freq = NOTE_C4;
+                        //         break;
+                        //     case 1:
+                        //         sound_freq = NOTE_D4;
+                        //         break;
+                        //     case 2:
+                        //         sound_freq = NOTE_E4;
+                        //         break;
+                        //     case 3:
+                        //         sound_freq = NOTE_F4;
+                        //         break;
+                        //     case 4:
+                        //         sound_freq = NOTE_G4;
+                        //         break;
+                        //     case 5:
+                        //         sound_freq = NOTE_A4;
+                        //         break;
+                        //     case 6:
+                        //         sound_freq = NOTE_B4;
+                        //         break;
+                        //     case 7:
+                        //         sound_freq = NOTE_C5;
+                        //         break;
+                        //     default:
+                        //         sound_freq = NOTE_C4;
+                        //         break;
+                        // }
                         JOY_sound(sound_freq,sound_dur);
                         break;
                     case _RVCODE_OPCODE_PENRGB:
@@ -928,7 +933,7 @@ void painting_routine(void) {
                 colorPaletteSelection(&foreground);
             }
             else if (JOY_5_pressed()) {
-                // renderBinaryGameHW(brightness_divisor);
+                renderBinaryGameHW(brightness_divisor);
             }
             else if (JOY_6_pressed()) {
                 colorPaletteSelection(&background);
@@ -1056,12 +1061,15 @@ void reset_storage(void) {
         i2c_write(EEPROM_ADDR, addr, I2C_REGADDR_2B, (uint8_t[]){0}, sizeof(uint8_t));
         Delay_Ms(3);
     }
+    #ifdef DEBUG_VERBOSE
     printf("Storage reset\n");
+    #endif
 }
 
 void print_status_storage(void) {
+    #ifdef DEBUG_VERBOSE
     printf("Status storage data:\n");
-
+    #endif
     for (uint16_t addr = init_status_addr_begin;
          addr < init_status_addr_begin + init_status_reg_size; addr++) {
         uint8_t data = 0;
@@ -1103,28 +1111,15 @@ void set_page_status(uint16_t page_no, uint8_t status) {
         while (1)
             ;
     }
-    if (page_no < page_status_addr_begin || page_no > page_status_addr_end) {
-        #ifdef DEBUG_VERBOSE
-        printf("Invalid page number %d\n", page_no);
-        printf("DEBUG: %d\n", __LINE__);
-        #endif
-        while (1)
-            ;
-    }
+    validatePageNo(page_no);
+    
     i2c_write(EEPROM_ADDR, page_no, I2C_REGADDR_2B, &status, sizeof(status));
     Delay_Ms(3);
     //printf("Page %d status set to %d\n", page_no, status);
 }
 
 uint8_t is_page_used(uint16_t page_no) {
-    if (page_no < page_status_addr_begin || page_no > page_status_addr_end) {
-        #ifdef DEBUG_VERBOSE
-        printf("Invalid page number %d\n", page_no);
-        printf("DEBUG: %d\n", __LINE__);
-        #endif
-
-        while (1);
-    }
+    validatePageNo(page_no);
     uint8_t data = 0;
     i2c_read(EEPROM_ADDR, page_no, I2C_REGADDR_2B, &data, sizeof(data));
     //printf("Page %d is %s\n", page_no, data ? "used" : "empty");
@@ -1142,68 +1137,100 @@ uint16_t calculate_page_no(uint16_t paint_no, uint8_t is_icon) {
     }
 }
 
-void save_paint(uint16_t paint_no, color_t * data, uint8_t is_icon) {
-    if (paint_no < 0 || paint_no > paint_addr_end) {
+static void save_data(uint16_t item_no, uint16_t max_no, uint8_t is_icon,
+                       uint16_t page_no_start, uint16_t page_count,
+                       uint8_t *data, uint16_t data_size) {
+    if (item_no > max_no) {
         #ifdef DEBUG_VERBOSE
-        printf("Invalid paint number %d\n", paint_no);
-        printf("DEBUG: %d\n", __LINE__);
+        printf("Invalid item number %d\n", item_no);
         #endif
-        while (1)
-            ;
+        while (1);
     }
-    uint16_t page_no_start = calculate_page_no(paint_no, is_icon);
-    for (uint16_t i = page_no_start; i < page_no_start + sizeof_paint_data_aspage; i++) {
+    for (uint16_t i = page_no_start; i < page_no_start + page_count; i++) {
         if (is_page_used(i)) {
             #ifdef DEBUG_VERBOSE
-            printf("Paint %d already used, overwriting\n", paint_no);
+            printf("Item %d already used, overwriting\n", item_no);
             #endif
             Delay_Ms(500);
         }
         set_page_status(i, 1);
     }
     i2c_result_e err = i2c_write_pages(EEPROM_ADDR, page_no_start * page_size,
-        I2C_REGADDR_2B, (uint8_t *)data, sizeof_paint_data);
-    
+        I2C_REGADDR_2B, data, data_size);
     #ifdef DEBUG_VERBOSE
-    printf("Save paint result: %d\n", err);
+    printf("Save result: %d\n", err);
     #endif
     Delay_Ms(3);
-    #ifdef DEBUG_VERBOSE
-    printf("Paint %d saved\n", paint_no);
-    #endif
+}
+
+static void save_paint(uint16_t paint_no, color_t * data, uint8_t is_icon) {
+    uint16_t page_no_start = calculate_page_no(paint_no, is_icon);
+    save_data(paint_no, paint_addr_end, is_icon, page_no_start, sizeof_paint_data_aspage,
+              (uint8_t *)data, sizeof_paint_data);
+    // if (paint_no < 0 || paint_no > paint_addr_end) {
+    //     #ifdef DEBUG_VERBOSE
+    //     printf("Invalid paint number %d\n", paint_no);
+    //     printf("DEBUG: %d\n", __LINE__);
+    //     #endif
+    //     while (1)
+    //         ;
+    // }
+    // uint16_t page_no_start = calculate_page_no(paint_no, is_icon);
+    // for (uint16_t i = page_no_start; i < page_no_start + sizeof_paint_data_aspage; i++) {
+    //     if (is_page_used(i)) {
+    //         #ifdef DEBUG_VERBOSE
+    //         printf("Paint %d already used, overwriting\n", paint_no);
+    //         #endif
+    //         Delay_Ms(500);
+    //     }
+    //     set_page_status(i, 1);
+    // }
+    // i2c_result_e err = i2c_write_pages(EEPROM_ADDR, page_no_start * page_size,
+    //     I2C_REGADDR_2B, (uint8_t *)data, sizeof_paint_data);
+    
+    // #ifdef DEBUG_VERBOSE
+    // printf("Save paint result: %d\n", err);
+    // #endif
+    // Delay_Ms(3);
+    // #ifdef DEBUG_VERBOSE
+    // printf("Paint %d saved\n", paint_no);
+    // #endif
 }
 
 
 void save_opCode(uint16_t opcode_no, uint8_t * data) {
-    if (opcode_no < 0 || opcode_no > page_status_addr_end) {
-        #ifdef DEBUG_VERBOSE
-        printf("Invalid paint number %d\n", opcode_no);
-        printf("DEBUG: %d\n", __LINE__);
-        #endif
-        while (1);
-    }
     uint16_t page_no_start = calculate_page_no(opcode_no, 0);
-    for (uint16_t i = page_no_start; i < page_no_start + sizeof_opcode_data_aspage; i++) {
-        if (is_page_used(i)) {
+    save_data(opcode_no, page_status_addr_end, 0, page_no_start, sizeof_opcode_data_aspage,
+              data, sizeof_opcode_data);
+//     if (opcode_no < 0 || opcode_no > page_status_addr_end) {
+//         #ifdef DEBUG_VERBOSE
+//         printf("Invalid paint number %d\n", opcode_no);
+//         printf("DEBUG: %d\n", __LINE__);
+//         #endif
+//         while (1);
+//     }
+//     uint16_t page_no_start = calculate_page_no(opcode_no, 0);
+//     for (uint16_t i = page_no_start; i < page_no_start + sizeof_opcode_data_aspage; i++) {
+//         if (is_page_used(i)) {
 
-            #ifdef DEBUG_VERBOSE
-            printf("Opcode %d already used, overwriting\n", opcode_no);
-            #endif
+//             #ifdef DEBUG_VERBOSE
+//             printf("Opcode %d already used, overwriting\n", opcode_no);
+//             #endif
 
-            Delay_Ms(500);
-        }
-        set_page_status(i, 1);
-    }
-    i2c_result_e err = i2c_write_pages(EEPROM_ADDR, page_no_start * page_size,
-        I2C_REGADDR_2B, (uint8_t *)data, sizeof_opcode_data);
+//             Delay_Ms(500);
+//         }
+//         set_page_status(i, 1);
+//     }
+//     i2c_result_e err = i2c_write_pages(EEPROM_ADDR, page_no_start * page_size,
+//         I2C_REGADDR_2B, (uint8_t *)data, sizeof_opcode_data);
     
-    #ifdef DEBUG_VERBOSE
-    printf("Save Opcode result: %d\n", err);
-    #endif
-    Delay_Ms(3);
-    #ifdef DEBUG_VERBOSE
-    printf("Opcode %d saved\n", opcode_no);
-    #endif
+//     #ifdef DEBUG_VERBOSE
+//     printf("Save Opcode result: %d\n", err);
+//     #endif
+//     Delay_Ms(3);
+//     #ifdef DEBUG_VERBOSE
+//     printf("Opcode %d saved\n", opcode_no);
+//     #endif
 }
 
 void load_paint(uint16_t paint_no, color_t * data, uint8_t is_icon) {
@@ -1250,7 +1277,9 @@ void load_opCode(uint16_t opcode_no, uint8_t * data) {
             ;
     }
     uint16_t page_no_start = calculate_page_no(opcode_no, 0);
+    #ifdef DEBUG_VERBOSE
     printf("Loading paint_no %d from page %d, is_icon: %d\n", opcode_no, page_no_start,0);
+    #endif
     if (!is_page_used(page_no_start)) {
         #ifdef DEBUG_VERBOSE
         printf("Paint %d not found\n", opcode_no);

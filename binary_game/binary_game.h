@@ -17,12 +17,27 @@
 #define confirmColorWrong solidColorRed  // Red
 #define confirmColorCorrect onColorGreen // Green
 
-typedef enum { BINARY_GAME_IDLE = 0, GAME_INPUT_CONFIRM, BINARY_GAME_CONTINUE } GameState;
+typedef enum {
+    BINARY_GAME_IDLE = 0,
+    GAME_INPUT_CONFIRM,
+    BINARY_GAME_CONTINUE,
+    BINARY_GAME_GRAPH = 3
+} GameState;
 
 // Global variable
 extern GameState currentGame;
 
 /// @brief Handle the logic of the whole binary game
 extern void initBinaryGame(void);
+
+/**
+ * @brief Create short visual to show if user answer is correct or false
+ * @param notes List of notes to use
+ * @param duration How long should each note/blinking behaviour last
+ * @param len How many times should it loops
+ * @param color What color should be used for the blinking
+ **/
+void playMelodyWithFlash(
+    const uint8_t * notes, const uint16_t * durations, uint8_t len, color_t color);
 
 #endif

@@ -7,6 +7,8 @@ build/./User/hardware_binary_game/binary_game.o: \
  User/hardware_binary_game/./../data/music.h \
  User/hardware_binary_game/./../data/../ch32v003fun/ch32v003fun.h \
  User/hardware_binary_game/./../data/../ch32v003fun/../funconfig.h \
+ User/hardware_binary_game/./multiple_round.h \
+ User/hardware_binary_game/./binary_game.h \
  User/hardware_binary_game/./../ch32v003fun/driver.h \
  User/hardware_binary_game/./../ch32v003fun/ch32v003fun.h \
  User/hardware_binary_game/./../ch32v003fun/../funconfig.h \
@@ -20,6 +22,8 @@ User/hardware_binary_game/./../data/../funconfig.h:
 User/hardware_binary_game/./../data/music.h:
 User/hardware_binary_game/./../data/../ch32v003fun/ch32v003fun.h:
 User/hardware_binary_game/./../data/../ch32v003fun/../funconfig.h:
+User/hardware_binary_game/./multiple_round.h:
+User/hardware_binary_game/./binary_game.h:
 User/hardware_binary_game/./../ch32v003fun/driver.h:
 User/hardware_binary_game/./../ch32v003fun/ch32v003fun.h:
 User/hardware_binary_game/./../ch32v003fun/../funconfig.h:

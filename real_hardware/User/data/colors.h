@@ -26,6 +26,7 @@ extern const color_t greenColor;
 extern const color_t yellowColor;
 extern const color_t orangeColor;
 extern const color_t purpleColor;
+extern const color_t magentaColor;
 extern const color_t offColor;
 
 // clang-format on

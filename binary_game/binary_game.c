@@ -11,8 +11,6 @@ static inline bool checkUserInputCol(uint8_t rowUser[8]);
 static inline void renderUserInput(void);
 static inline void handleScenario(uint8_t idx);
 
-static inline void playMelodyWithFlash(
-    const uint8_t * notes, const uint16_t * durations, uint8_t len, color_t color);
 static inline void flashCorrect(void);
 static inline void flashWrong(void);
 
@@ -22,6 +20,8 @@ GameState currentGame;
 void initBinaryGame(void) {
     // Check if user has answered correctly or just wanna quit the game
     stopPlaying = false;
+    // Ensure that the graph result is only rendered once
+    bool graphRendered = false;
     // Only move when pointer moves or user select something
     int buttonPressed = 0;
     // In the beginning it starts at round 1 (ideally 0)
@@ -43,7 +43,7 @@ void initBinaryGame(void) {
 
     // The game will keep running until user get the answer correct, unless
     // they wish to stop the game
-    while (!stopPlaying && currentPage == BINARY_GAME && currentRound <= 4) {
+    while (!stopPlaying && currentPage == BINARY_GAME) {
 
         // Activate keyboard I, J, K, L press input
         checkMoveButton();
@@ -76,10 +76,27 @@ void initBinaryGame(void) {
         // Update to compare button released and pressed state
         updateMoveButton();
 
+        if(currentGame == BINARY_GAME_GRAPH){
+            if(!graphRendered){
+                // Show the graph momentarily until pointer has moved
+                flashGameComplete();
+                renderResultsGraph();
+                graphRendered = true;
+            }   
+            else if(buttonPressed == 1){
+                // Stop playing and go back to the previous page, namely
+                // `PAINTING_SPACE`
+                currentPage = prevPageState;
+                currentGame = BINARY_GAME_IDLE;
+                stopPlaying = true;
+            }
+        }
+
         // Only works after user move the pointer one by one
-        if (buttonPressed == 1) {
+        if ((currentGame == BINARY_GAME_IDLE) && buttonPressed == 1) {
             // Render normally
             renderBinaryGame(randomNumber);
+            // printf("currentGame is %d \n", currentGame);
             // Reset state
             buttonPressed = 0;
         }
@@ -118,14 +135,6 @@ void initBinaryGame(void) {
                 currentRound += 1;
                 currentGame = BINARY_GAME_IDLE;
 
-                if (currentRound > 4) {
-                    // Stop playing and go back to the previous page, namely
-                    // `PAINTING_SPACE`
-                    currentPage = prevPageState;
-                    // Stop the while loop
-                    stopPlaying = true;
-                }
-
                 // Render normally
                 renderBinaryGame(randomNumber);
             }
@@ -134,8 +143,16 @@ void initBinaryGame(void) {
             // not
             currentGame = BINARY_GAME_IDLE;
         }
-    }
 
+        // As soon as the round has gone through 5 times, immediately show the result graph
+        if ((currentGame == BINARY_GAME_IDLE) && currentRound > 4) {
+            // Continue to graph screen
+            currentGame = BINARY_GAME_GRAPH;
+            // Stop the while loop
+            // stopPlaying = true;
+        }
+
+    }
     // Reset user input value and round-status LEDs back to the saved canvas
     for (int i = 0; i <= 7; i++) {
         // Reset roundStatus and roundEntered value
@@ -227,28 +244,28 @@ static inline void handleScenario(uint8_t idx) {
     }
     // Handle the quit button
     else if (idx == 0) {
-        printf("QUIT - Stop Playing Binary Game!");
+        printf("QUIT - Stop Playing Binary Game! \n");
         // Stop playing and go back to the previous page, namely `PAINTING_SPACE`
         currentPage = prevPageState;
         // Stop the while loop
         stopPlaying = true;
     }
     // Handle the confirm button
-    else if (idx == 7) {
+    else if (idx == 7 && currentRound <= 4) {
         // Handle the confirm button
         if (checkUserInputCol(rowOneHandle)) {
             // Change current game state
             currentGame = BINARY_GAME_CONTINUE;
             // Play the short right answer animation with sound here
             flashCorrect();
-            printf("CORRECT - Your answer matches the corresponding decimal value!");
+            printf("CORRECT - Your answer matches the corresponding decimal value! \n");
         }
         else {
             // Change current game state
             currentGame = BINARY_GAME_IDLE;
             // Play the short wrong answer animation with sound here
             flashWrong();
-            printf("WRONG - Well played, try again!");
+            printf("WRONG - Well played, try again! \n");
         }
 
         // Handle whether should stay/proceed to the next round
@@ -310,7 +327,6 @@ static inline bool checkUserInputCol(uint8_t rowUser[8]) {
     | 3 | 0          | 2           | false   | 0             | 0000     | 0000    |
     | 4 | 1          | 1           | true    | 1 << 1 = 0010 | 0000     | 0010    |
     | 5 | 1          | 0           | true    | 1 << 0 = 0001 | 0010     | 0011    |
-
     */
 
     uint8_t v = 0;
@@ -330,7 +346,7 @@ static inline bool checkUserInputCol(uint8_t rowUser[8]) {
  * @param len How many times should it loops
  * @param color What color should be used for the blinking
  **/
-static inline void playMelodyWithFlash(
+void playMelodyWithFlash(
     const uint8_t * notes, const uint16_t * durations, uint8_t len, color_t color) {
     // Clear the screen first
     clear();

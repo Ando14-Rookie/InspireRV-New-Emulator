@@ -74,3 +74,47 @@ void handleGameRounds(bool answerCorrect, uint8_t roundIndex) {
         }
     }
 }
+
+void renderResultsGraph(void) {
+    // Will be used to display the 5-rounds result from leftmost to right
+    uint8_t posRowSix = 6 * horizontalButtons + 7;
+    uint8_t posRowSeven = 7 * horizontalButtons + 7;
+
+    static const uint8_t trophyLogo[5] = {
+        0b01111110, 0b10111101, 0b01111110, 0b00011000, 0b00111100
+    }; 
+
+    fill_color(offColor);
+
+    // Run each round; Start with round 0 and LED at column 7
+    for (uint8_t round = 0; round < 5; round++) {
+        color_t dotColor = (roundStatus[round] == ROUND_CORRECT) ? confirmColorCorrect : confirmColorWrong;
+        // Row 7 & 6, columns 7-3
+        setColorLEDScaled((posRowSeven - round), dotColor, brightnessDivisor);  
+        setColorLEDScaled((posRowSix - round), dotColor, brightnessDivisor);  
+    }
+
+    // Create the trophy logo using yellow color
+    for (int arrayRow = 0; arrayRow < 5; arrayRow++) {
+        int ledRow = 4 - arrayRow; // top (7) down to row 3
+        uint8_t rowBits = trophyLogo[arrayRow];
+        for (int arrayCol = 0; arrayCol < 8; arrayCol++) {
+            int ledCol = 7 - arrayCol;
+            int idx = ledRow * 8 + ledCol;
+            // Bit 7 = column 0, so shift right by (7 - arrayCol) or ledCol
+            int val = (rowBits >> (ledCol)) & 1;
+
+            if (val == 1) {
+                setColorLEDScaled(idx, onColorYellow, brightnessDivisor);
+            }
+        }
+    }
+
+    WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
+}
+
+void flashGameComplete(void) {
+    static const uint8_t notes[] = {NOTE_GS5, NOTE_D6, NOTE_A5, NOTE_FS6, NOTE_D6, NOTE_FS6};
+    static const uint16_t durations[] = {150, 150, 150, 300, 150, 600};
+    playMelodyWithFlash(notes, durations, 6, confirmColorCorrect);
+}

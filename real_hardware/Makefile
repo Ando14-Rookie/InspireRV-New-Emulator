@@ -33,6 +33,7 @@ C_SOURCES := ./User/main.c \
 	./User/data/colors.c \
 	./User/data/buttons.c \
 	./User/data/music.c \
+	./User/hardware_binary_game/multiple_round.c
 
  # List of assembly source files
 ASM_SOURCES := ./Startup/startup_ch32v00x.S
@@ -69,7 +70,7 @@ ARCH_FLAGS := -march=rv32ec_zicsr_zifencei -mabi=ilp32e
 CFLAGS := $(COMMON_FLAGS) $(ARCH_FLAGS) $(INCLUDES) -std=gnu11 -MMD -MP
 
 # add this only when you want debug prints:
-# CFLAGS += -DDEBUG_VERBOSE
+# CFLAGS += -DEBUG_VERBOSE
 
 # Flags for compiling assembly files.
 # "-x assembler-with-cpp": tells GCC to preprocess the assembly source first, \

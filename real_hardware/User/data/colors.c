@@ -19,9 +19,10 @@ const color_t colors[NUM_LEDS] = {
 const color_t blueColor = {33, 33, 255};
 const color_t redColor = {0, 255, 0};
 const color_t greenColor = {255, 0, 0};
-const color_t yellowColor = {255, 255, 100};
+const color_t yellowColor = {255, 221, 31};
 const color_t orangeColor = {255, 150, 15};
 const color_t purpleColor = {165, 100, 255};
+const color_t magentaColor = {255, 15, 245}; 
 const color_t offColor = {0, 0, 0};
 
 // clang-format on

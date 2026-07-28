@@ -1,6 +1,6 @@
 #define CH32V003_I2C_IMPLEMENTATION
 #define WS2812BSIMPLE_IMPLEMENTATION
-#include <stdbool.h>
+// #include <stdbool.h>
 #include "funconfig.h"
 #include "./ch32v003fun/ch32v003_i2c.h"
 #include "./data/colors.h"
@@ -22,7 +22,7 @@
 #define init_status_addr_begin 0
 #define init_status_addr_end 7
 #define init_status_reg_size (init_status_addr_end - init_status_addr_begin + 1) // size  = 8
-#define init_status_format "  %c "
+#define init_status_format "%c"
 #define init_status_data (uint8_t *)"IL000001"
 #define page_status_addr_begin 8 // page 8
 #define page_status_addr_end 511 // page 511
@@ -44,8 +44,9 @@
 #define app_icon_page_no (0 * sizeof_paint_data_aspage) //no = 0
 #define app_icon_page_no_max (8 * sizeof_paint_data_aspage) //size = 24
 
-
 #define delay 1000
+
+#define TESTING_MODE 1
 
 // Ensure HSI value has been defined
 #ifndef HSI_VALUE
@@ -56,7 +57,7 @@
 void init_storage(void);
 
 /// @brief Save paint data to eeprom, paint 0 stored in page ?? (out of page 0 to 511)
-void save_paint(uint16_t paint_no, color_t * data, uint8_t is_icon);    
+static void save_paint(uint16_t paint_no, color_t * data, uint8_t is_icon);    
 void load_paint(uint16_t paint_no, color_t * data, uint8_t is_icon);    // load paint data from eeprom, paint 0 stored in page ?? (out of page 0 to 511)
 /** 
  * 
@@ -77,7 +78,7 @@ uint8_t is_page_used(uint16_t page_no); // check if page[x] is already used
  **/
 uint8_t is_storage_initialized(void);   
 // save opcode data to eeprom, paint 0 stored in page ?? (out of page 0 to 511)
-void save_opCode(uint16_t opcode_no, uint8_t * data);
+static void save_opCode(uint16_t opcode_no, uint8_t * data);
 void load_opCode(uint16_t opcode_no, uint8_t * data);
 
 
@@ -279,4 +280,17 @@ static const color_t rvClearColor = {.r = 0, .g = 0, .b = 0};
 uint8_t brightness_divisor = 10;// >0
 uint8_t normal_brightness_divisor = 10;// >0
 #define LED_PINS GPIOA, 2
+
+/** 
+ * @brief Check if `page_no` is within the range; If no, it will halt the whole program;
+ * @param page_no The current page number
+ **/
+static inline void validatePageNo(uint16_t page_no) {
+    if (page_no < page_status_addr_begin || page_no > page_status_addr_end) {
+        #ifdef DEBUG_VERBOSE
+        printf("Invalid page number %d\n", page_no);
+        #endif
+        while (1);
+    }
+}
 
