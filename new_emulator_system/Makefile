@@ -46,7 +46,8 @@ INCLUDES = -I"../emulator/adriel_2026_work" \
            -I"../emulator/adriel_2026_work/emulator_driver" \
            -I"../painting_space" \
            -I"../coding_space" \
-           -I"../binary_game" 
+           -I"../binary_game" \
+           -I"../addition_game"
 
 # Tells make where to find source files contextually
 VPATH    = ../emulator/adriel_2026_work \
@@ -56,7 +57,8 @@ VPATH    = ../emulator/adriel_2026_work \
            ../data \
            ../painting_space \
            ../coding_space \
-           ../binary_game
+           ../binary_game \
+           ../addition_game
 
 # ====================================================================
 # 3. FILES
@@ -77,7 +79,8 @@ SRCS    = switch_page.c \
           ../emulator-screen/brightness_control.c \
           ../binary_game/binary_game.c \
           ../binary_game/random_number_canvas.c \
-          ../binary_game/multiple_round.c
+          ../binary_game/multiple_round.c \
+          ../addition_game/addition_game.c
 
 OBJS    = switch_page.o \
           led_matrix_screen.o \
@@ -95,7 +98,8 @@ OBJS    = switch_page.o \
           brightness_control.o \
           binary_game.o \
           random_number_canvas.o \
-          multiple_round.o
+          multiple_round.o \
+          addition_game.o
 
 # Determine where to store the object files
 OBJDIR = myObjects

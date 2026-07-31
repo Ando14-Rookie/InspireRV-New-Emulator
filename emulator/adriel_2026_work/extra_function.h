@@ -10,6 +10,7 @@
 #include "./emulator_driver/emulator_driver.h"
 #include "../../emulator-screen/brightness_control.h"
 #include "../../binary_game/binary_game.h"
+#include "../../addition_game/addition_game.h"
 
 #include "../emulator/adriel_2026_work/system_window_mac.h"
 

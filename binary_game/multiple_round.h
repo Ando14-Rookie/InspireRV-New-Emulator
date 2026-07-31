@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "../data/buttons.h"
+#include "../data/music.h"
 #include "../data/colors.h"
 
 // Status for the multiple round game
@@ -17,9 +18,13 @@ enum RoundStatus {
 // Store the multiple round state here
 extern enum RoundStatus roundStatus[5];
 
+// Store the overflow state
+extern const uint8_t overflowLogo[6][5];
+
 // If it is the 1st time in that round, do +1; If round is already 1, then it can't edit
 // roundStatus anymore
 extern int8_t roundEntered[5];
+
 /**
  * @brief Call this everytime emulator screen is printed. This print the user input
  * , confirm button and quit button
@@ -35,8 +40,15 @@ void handleGameRounds(bool answerCorrect, uint8_t currentRound);
 
 /**
  * @brief Render the graph shown in the final scene after playing 5 game of round
+ * for `BINARY_GAME`
  **/
 void renderResultsGraph(void);
+
+/**
+ * @brief Render the graph shown in the final scene after playing 5 game of round
+ * for `ADDITION_GAME`
+ **/
+void renderOverflowGraph(void);
 
 /// @brief Function that handle the graph rendering after playing 
 void flashGameComplete(void);

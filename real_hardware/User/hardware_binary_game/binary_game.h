@@ -56,7 +56,7 @@ extern void renderBinaryGameHW(uint8_t brightnessDivisor);
  * @param len How many times should it loops
  * @param color What color should be used for the blinking
  **/
-void playMelodyWithFlash(
+void playMelodyWithFlashHW(
     const uint16_t * notes, const uint8_t * durations, uint8_t len, color_t color);
 
 #endif

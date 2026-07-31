@@ -61,73 +61,45 @@ void playEmuNote(uint16_t frequency, uint16_t durationMs) {
     #endif
 }
 
-// const int melody[] = {
+void playMelodyWithFlash(
+    const uint8_t * notes, const uint16_t * durations, uint8_t len, color_t color) {
+    // Clear the screen first
+    clear();
 
-//   NOTE_E5, 8, NOTE_D5, 8, NOTE_FS4, 4, NOTE_GS4, 4, 
-//   NOTE_CS5, 8, NOTE_B4, 8, NOTE_D4, 4, NOTE_E4, 4, 
-//   NOTE_B4, 8, NOTE_A4, 8, NOTE_CS4, 4, NOTE_E4, 4,
-//   NOTE_A4, 2, 
-//   };
+    // Run the visual and audio
+    for (uint8_t i = 0; i < len; i++) {
+        // Fills Screen with Green/Red
+        fill_color(color);
 
-// const int notes = sizeof(melody) / sizeof(melody[0]) / 2;
+        // Prints the emulator screen
+        WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
 
-// // change this to make the song slower or faster
-// const int tempo = 50;
-// // this calculates the duration of a whole note in ms
-// const int wholenote = (60000 * 4) / tempo;
+        // Plays note for its own duration (blocking or non-blocking, your driver's call)
+        playEmuNote(notes[i], durations[i]);
 
-// void JOY_sound(uint16_t freq, uint16_t dur) {
-//     int pin = PC3;
-//     funPinMode(pin, GPIO_Speed_50MHz | GPIO_CNF_OUT_PP);
-//     const int sysclk = 1000000;
-//     if (sysclk < freq)
-//         return;
-//     uint32_t delay_us = sysclk / 2 / freq;
-//     uint32_t dur_us = dur * 1000;
-//     while (dur_us > 1000) {
-//         if (freq)
-//             funDigitalWrite(pin, FUN_LOW);
-//         Delay_Us(delay_us);
-//         funDigitalWrite(pin, FUN_HIGH);
-//         Delay_Us(delay_us);
-//         dur_us -= 1000;
-//         if (dur_us > delay_us * 2)
-//             dur_us -= delay_us * 2;
-//     }
-//     if (freq)
-//         funDigitalWrite(pin, FUN_LOW);
-//     Delay_Us(delay_us);
-//     funDigitalWrite(pin, FUN_HIGH);
-//     Delay_Us(delay_us);
-// }
+        // Fills Screen with OFF LED between notes
+        fill_color(offColor);
 
-// int convertDuration(int duration) {
-//     int noteDuration = 0;
-//     if (duration > 0) {
-//         // regular note, just proceed
-//         noteDuration = (wholenote) / duration;
-//     }
-//     else if (duration < 0) {
-//         // dotted notes are represented with negative durations!!
-//         noteDuration = (wholenote) / abs(duration);
-//         noteDuration *= 1.5; // increases the duration in half for dotted notes
-//     }
-//     return noteDuration;
-// }
+        // Print emulator screen
+        WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
 
-// void playMusic(noterange_t range) {
-//     // iterate over the notes of the melody.
-//     // Remember, the array is twice the number of notes (notes + durations)
-//     for (int thisNote = range.start * 2; thisNote < range.end * 2; thisNote += 2) {
-//         JOY_sound(melody[thisNote], convertDuration(melody[thisNote + 1]));
-//         Delay_Ms(10);
-//     }
-// }
+        // Brief gap so blinks look distinct, not one continuous glow
+        Delay_Ms(50);
+    }
+}
 
-// inline void playAllMusic(void) {
-//     // sizeof gives the number of bytes, each int value is
-//     // composed of two bytes (16 bits)
-//     // there are two values per note (pitch and duration), so for each note
-//     // there are four bytes
-//     playMusic((noterange_t){0, notes});
-// }
+/// @brief Play the correct visual
+void flashCorrect(void) {
+    // Used higher notes, so that the sound is clearer
+    static const uint8_t notes[] = {NOTE_B5, NOTE_D6, NOTE_FS6, NOTE_B6};
+    static const uint16_t durations[] = {240, 240, 240, 450};
+    playMelodyWithFlash(notes, durations, 4, confirmColorCorrect);
+}
+
+/// @brief Play the wrong visual
+void flashWrong(void) {
+    // Used higher notes, so that the sound is clearer
+    static const uint8_t notes[] = {NOTE_A5, NOTE_GS5};
+    static const uint16_t durations[] = {400, 450};
+    playMelodyWithFlash(notes, durations, 2, confirmColorWrong);
+}

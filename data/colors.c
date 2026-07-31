@@ -8,10 +8,13 @@ color_t onColorBlue = {100, 100, 255};  // Blue
 const color_t fixedColorGreen = {100, 255, 100}; // Green
 const color_t offColor = {0, 0, 0};           // Black
 const color_t orangeColor = {255, 150, 15}; // Orange color for binary game
+const color_t lightOrangeColor = {255, 230, 190};
+const color_t greyColor = {235, 235, 235};
 const color_t pointerColor = {255, 188, 100}; // Orange
 const color_t magentaColor = {255, 15, 245}; // Magenta
 const color_t solidColorRed = {255, 0, 0}; // Solid Red
 const color_t lightColorRed = {255, 200, 200};  // Light Red
+const color_t whiteColor = {255, 255, 255};
 
 /// Buffer color data for 8x8 LED Matrix
 color_t led_array[NUM_BUTTONS] = {0};

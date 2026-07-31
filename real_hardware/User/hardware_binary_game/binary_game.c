@@ -329,7 +329,7 @@ static inline bool checkUserInputCol(uint8_t randomQuestion, uint8_t rowUser[8])
  * @param len How many times should it loops
  * @param color What color should be used for the blinking
  **/
-void playMelodyWithFlash(
+void playMelodyWithFlashHW(
     const uint16_t * notes, const uint8_t * durations, uint8_t len, color_t color) {
     // Clear the screen first
     clear();
@@ -360,12 +360,12 @@ void playMelodyWithFlash(
 static void flashCorrect(void) {
     static const uint16_t notes[] = {NOTE_C4, NOTE_E4, NOTE_G4, NOTE_C5};
     static const uint8_t durations[] = {150, 150, 150, 200};
-    playMelodyWithFlash(notes, durations, 4, greenColor);
+    playMelodyWithFlashHW(notes, durations, 4, greenColor);
 }
 
 /// @brief Play the wrong visual
 static void flashWrong(void) {
     static const uint16_t notes[] = {NOTE_E4, NOTE_C4};
     static const uint8_t durations[] = {200, 250};
-    playMelodyWithFlash(notes, durations, 2, redColor);
+    playMelodyWithFlashHW(notes, durations, 2, redColor);
 }

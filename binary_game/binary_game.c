@@ -11,9 +11,6 @@ static inline bool checkUserInputCol(uint8_t rowUser[8]);
 static inline void renderUserInput(void);
 static inline void handleScenario(uint8_t idx);
 
-static inline void flashCorrect(void);
-static inline void flashWrong(void);
-
 // By default, game state is BINARY_GAME_IDLE
 GameState currentGame;
 
@@ -76,6 +73,7 @@ void initBinaryGame(void) {
         // Update to compare button released and pressed state
         updateMoveButton();
 
+        // Handle the graph in the end of the 5 game round
         if(currentGame == BINARY_GAME_GRAPH){
             if(!graphRendered){
                 // Show the graph momentarily until pointer has moved
@@ -193,7 +191,7 @@ static inline void renderBinaryGame(uint8_t selectedNumber) {
     renderUserInput();
     renderGameRounds();
 
-    // Draw the hardcoded S logo on rows 1-7
+    // Draw the hardcoded question on rows 1-7
     for (int arrayRow = 0; arrayRow < 5; arrayRow++) {
         // array[0] = bottom = LED row 7, so flip the row
         int ledRow = 7 - arrayRow;
@@ -337,54 +335,4 @@ static inline bool checkUserInputCol(uint8_t rowUser[8]) {
 
     // Compare if user input and binary question is the same or not
     return (v == randomNumber);
-}
-
-/**
- * @brief Create short visual to show if user answer is correct or false
- * @param notes List of notes to use
- * @param duration How long should each note/blinking behaviour last
- * @param len How many times should it loops
- * @param color What color should be used for the blinking
- **/
-void playMelodyWithFlash(
-    const uint8_t * notes, const uint16_t * durations, uint8_t len, color_t color) {
-    // Clear the screen first
-    clear();
-
-    // Run the visual and audio
-    for (uint8_t i = 0; i < len; i++) {
-        // Fills Screen with Green/Red
-        fill_color(color);
-
-        // Prints the emulator screen
-        WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
-
-        // Plays note for its own duration (blocking or non-blocking, your driver's call)
-        playEmuNote(notes[i], durations[i]);
-
-        // Fills Screen with OFF LED between notes
-        fill_color(offColor);
-
-        // Print emulator screen
-        WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
-
-        // Brief gap so blinks look distinct, not one continuous glow
-        Delay_Ms(50);
-    }
-}
-
-/// @brief Play the correct visual
-static inline void flashCorrect(void) {
-    // Used higher notes, so that the sound is clearer
-    static const uint8_t notes[] = {NOTE_B5, NOTE_D6, NOTE_FS6, NOTE_B6};
-    static const uint16_t durations[] = {240, 240, 240, 450};
-    playMelodyWithFlash(notes, durations, 4, confirmColorCorrect);
-}
-
-/// @brief Play the wrong visual
-static inline void flashWrong(void) {
-    // Used higher notes, so that the sound is clearer
-    static const uint8_t notes[] = {NOTE_A5, NOTE_GS5};
-    static const uint16_t durations[] = {400, 450};
-    playMelodyWithFlash(notes, durations, 2, confirmColorWrong);
 }

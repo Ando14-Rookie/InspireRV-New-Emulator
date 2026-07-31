@@ -30,8 +30,11 @@ extern color_t onColorBlue;
 extern const color_t fixedColorGreen;
 extern const color_t offColor;
 extern const color_t orangeColor;
+extern const color_t lightOrangeColor;
+extern const color_t greyColor;
 extern const color_t pointerColor;
 extern const color_t magentaColor;
+extern const color_t whiteColor;
 extern const color_t solidColorRed;
 extern const color_t lightColorRed;
 

@@ -85,8 +85,8 @@ void handleButtonFunction(void) {
             printf("You selected 'BINARY GAME'.\n");
             // Remember previous page: PAINTING_SPACE
             prevPageState = currentPage;
-            // Change pageState to COLOR_PICK_FOREGROUND
-            currentPage = BINARY_GAME;
+            // TO DO: Add function to render and handle user choosing which game to play
+            currentPage = ADDITION_GAME;
             // Will print the page ID: 14
             printf("Now page state is %d\n", currentPage);
         }
@@ -214,6 +214,11 @@ void handleButtonFunction(void) {
 
     if(currentPage == BINARY_GAME){
         initBinaryGame();
+    }
+
+    if(currentPage == ADDITION_GAME){
+        // initBinaryGame();
+        initAdditionGame();
     }
 
     // Update the previous data to check if button actually being press, just press or
