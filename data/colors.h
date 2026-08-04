@@ -35,6 +35,7 @@ extern const color_t greyColor;
 extern const color_t pointerColor;
 extern const color_t magentaColor;
 extern const color_t whiteColor;
+extern const color_t cyanColor;
 extern const color_t solidColorRed;
 extern const color_t lightColorRed;
 

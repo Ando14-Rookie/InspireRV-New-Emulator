@@ -21,8 +21,7 @@ typedef enum {
     CODING_LOAD_SLOT, 
     CODING_LOAD_CONFIRM,
     BRIGHTNESS_CONTROL,
-    BINARY_GAME, // Page is only for binary number learning
-    ADDITION_GAME // Page is only for binary addition learning
+    CHOOSE_GAME_CONTROL
 } PageState;
 
 extern PageState currentPage;

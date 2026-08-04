@@ -84,3 +84,43 @@ void playAllMusic(void) {
     // there are four bytes
     playMusic((noterange_t){0, notes});
 }
+
+void playMelodyWithFlashHW(
+    const uint16_t * notes, const uint8_t * durations, uint8_t len, color_t color) {
+    // Clear the screen first
+    clear();
+
+    // Run the visual and audio
+    for (uint8_t i = 0; i < len; i++) {
+        // Fills Screen with Green/Red
+        fill_color(color);
+
+        // Prints the emulator screen
+        WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
+
+        // Plays note for its own duration (blocking or non-blocking, your driver's call)
+        JOY_sound(notes[i], durations[i]);
+
+        // Fills Screen with OFF LED between notes
+        fill_color((color_t){0, 0, 0});
+
+        // Prints the emulator screen again
+        WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
+
+        // Brief gap so blinks look distinct, not one continuous glow
+        Delay_Ms(5);
+    }
+}
+
+void flashCorrect(void) {
+    static const uint16_t notes[] = {NOTE_C4, NOTE_E4, NOTE_G4, NOTE_C5};
+    static const uint8_t durations[] = {150, 150, 150, 200};
+    playMelodyWithFlashHW(notes, durations, 4, greenColor);
+}
+
+void flashWrong(void) {
+    static const uint16_t notes[] = {NOTE_E4, NOTE_C4};
+    static const uint8_t durations[] = {200, 250};
+    playMelodyWithFlashHW(notes, durations, 2, redColor);
+}
+

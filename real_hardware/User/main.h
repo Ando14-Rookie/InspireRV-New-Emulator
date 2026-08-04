@@ -13,6 +13,7 @@
 // #endif
 #include "./ch32v003fun/ch32v003fun.h"
 #include "./hardware_binary_game/binary_game.h"
+#include "./hardware_binary_game/addition_game.h"
 
 //Storage defines
 #define EEPROM_ADDR 0x53 // obtained from i2c_scan(), before shifting by 1 bit

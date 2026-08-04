@@ -47,7 +47,7 @@ extern GameState currentGame;
  * @brief  Show and handle the Binary Game 
  * @param brightnessDivisor Brightness level to be used in each LED
  **/ 
-extern void renderBinaryGameHW(uint8_t brightnessDivisor);
+extern void initBinaryGameHW(uint8_t brightnessDivisor);
 
 /**
  * @brief Create short visual to show if user answer is correct or false

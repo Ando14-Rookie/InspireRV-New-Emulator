@@ -33,7 +33,8 @@ C_SOURCES := ./User/main.c \
 	./User/data/colors.c \
 	./User/data/buttons.c \
 	./User/data/music.c \
-	./User/hardware_binary_game/multiple_round.c
+	./User/hardware_binary_game/multiple_round.c \
+	./User/hardware_binary_game/addition_game.c
 
  # List of assembly source files
 ASM_SOURCES := ./Startup/startup_ch32v00x.S
@@ -69,8 +70,8 @@ ARCH_FLAGS := -march=rv32ec_zicsr_zifencei -mabi=ilp32e
 # -MP adds dummy rules to make header dependency handling safer.
 CFLAGS := $(COMMON_FLAGS) $(ARCH_FLAGS) $(INCLUDES) -std=gnu11 -MMD -MP
 
-# add this only when you want debug prints:
-# CFLAGS += -DEBUG_VERBOSE
+# KEEP the critical SDK flag so the hardware libraries don't break
+# CFLAGS += -DDEBUG_VERBOSE
 
 # Flags for compiling assembly files.
 # "-x assembler-with-cpp": tells GCC to preprocess the assembly source first, \

@@ -25,6 +25,23 @@ extern const uint8_t overflowLogo[6][5];
 // roundStatus anymore
 extern int8_t roundEntered[5];
 
+// Status for what game is being played
+enum GameplayMode {
+    CHOOSE_GAME, // 0
+    BINARY_GAME, // 1
+    ADDITION_GAME // 2
+};
+
+// Store the gameplay mode
+extern enum GameplayMode playGameMode;
+
+typedef uint8_t ChooseEnterPressed;
+#define CHOOSE_GAME_NOT_ENTERED 0
+#define CHOOSE_GAME_ENTERED 1
+
+/// @brief Let user choose which game he wants to play. Either `Binary Game` or `Addition Game`.
+void chooseGameMode(void);
+
 /**
  * @brief Call this everytime emulator screen is printed. This print the user input
  * , confirm button and quit button

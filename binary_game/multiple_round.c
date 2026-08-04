@@ -1,10 +1,17 @@
-#include "multiple_round.h"
+#include "./multiple_round.h"
+
+// Function prototype declaration
+static inline void renderChooseGameMode(void);
 
 enum RoundStatus roundStatus[5] = {
     ROUND_IDLE, ROUND_IDLE, ROUND_IDLE, ROUND_IDLE, ROUND_IDLE};
 
 int8_t roundEntered[5] = {0};
 
+
+enum GameplayMode playGameMode = CHOOSE_GAME;
+
+// Store the overflow state logo
 const uint8_t overflowLogo[6][5] = {
     [0] = {0b10000111, 0b10011101, 0b11011101, 0b10100101, 0b11000111},
     [1] = {0b10000010, 0b10011110, 0b11011010, 0b10100010, 0b11000111},
@@ -12,6 +19,129 @@ const uint8_t overflowLogo[6][5] = {
     [3] = {0b10000111, 0b10011001, 0b11011111, 0b10100001, 0b11000111},
     [4] = {0b10000011, 0b10011101, 0b11011111, 0b10100001, 0b11000001},
     [5] = {0b10000111, 0b10011100, 0b11011111, 0b10100001, 0b11000110}};
+
+// Store the gameplay screen here
+static const char* screenPattern[8] = {
+    "12120330",
+    "21213333",
+    "12123333",
+    "21210330",
+    "00000000",
+    "02200330",
+    "22223333",
+    "00000000"
+};
+
+uint16_t chooseGamemodeScreen[7] = {0};
+
+void chooseGameMode(void) {
+    // Will stay in this mode until user presses confirm button to choose the game mode
+    bool chooseMode = false;
+    // Reset the buttonPressed variable to be 0 first
+    buttonPressed = 0;
+    // Check if the enter has been pressed or not
+    ChooseEnterPressed enterPressed = CHOOSE_GAME_NOT_ENTERED;
+    
+    // Print the emulator screen for the first time for this function
+    renderChooseGameMode();
+
+    while(!chooseMode){
+        // Activate keyboard I, J, K, L press input
+        checkMoveButton();
+
+        // Navigate pointers
+        if (BTN_JUST_PRESSED(BTN_UP)) {
+            currentposition = (NUM_LEDS + currentposition + 8) % NUM_LEDS;
+            buttonPressed = 1;
+        }
+        if (BTN_JUST_PRESSED(BTN_DOWN)) {
+            currentposition = (NUM_LEDS + currentposition - 8) % NUM_LEDS;
+            buttonPressed = 1;
+        }
+        if (BTN_JUST_PRESSED(BTN_LEFT)) {
+            currentposition = (NUM_LEDS + currentposition + 1) % NUM_LEDS;
+            buttonPressed = 1;
+        }
+        if (BTN_JUST_PRESSED(BTN_RIGHT)) {
+            currentposition = (NUM_LEDS + currentposition - 1) % NUM_LEDS;
+            buttonPressed = 1;
+        }
+        if (BTN_JUST_PRESSED(Enter_Key)) {
+            enterPressed = CHOOSE_GAME_ENTERED;
+        }
+
+        // Compute which row and col your pointer is in now
+        uint8_t row = currentposition / GRID_COLS;
+        uint8_t col = currentposition % GRID_COLS;
+        uint8_t ledIndex = row * VERTICAL_BUTTONS + col;
+
+        // Update to compare button released and pressed state
+        updateMoveButton();
+
+        if(buttonPressed == 1){
+            renderChooseGameMode();
+            // Reset state
+            buttonPressed = 0;
+        }
+
+        if(enterPressed == CHOOSE_GAME_ENTERED){
+            // If user has pressed the confirm button, then choose the game mode
+            if((ledIndex >= 8 && ledIndex <= 11) || ledIndex == 17 || ledIndex == 18){
+                playGameMode = ADDITION_GAME;
+                chooseMode = true;
+            }
+            else if((ledIndex >= 12 && ledIndex <= 15) || ledIndex == 21 || ledIndex == 22){
+                playGameMode = BINARY_GAME;
+                chooseMode = true;
+            }
+
+            // Reset back
+            enterPressed = CHOOSE_GAME_NOT_ENTERED;
+        }
+
+    }
+
+    //Reset values
+    buttonPressed = 0;
+    enterPressed = CHOOSE_GAME_NOT_ENTERED;
+}
+
+static inline void renderChooseGameMode(void) {
+    // Clear the screen first
+    fill_color(offColor);
+    // Render the game mode selection screen
+    for (uint8_t arrayRow = 0; arrayRow <= 7; arrayRow++) {
+        int8_t ledRow = 7 - arrayRow; // top (7) down to row 3
+        for (uint8_t arrayCol = 0; arrayCol < 8; arrayCol++) {
+            int ledCol = 7 - arrayCol;
+            int idx = ledRow * 8 + ledCol;
+            // '0'-'3' as ASCII characters need to be converted to actual
+            // numbers 0-3. Subtracting the character '0' does this:
+            // e.g. '2' - '0' = 50 - 48 = 2
+            uint8_t state = screenPattern[arrayRow][arrayCol] - '0';
+            switch(state){
+                case 0:
+                    setColorLEDScaled(idx, offColor, brightnessDivisor);
+                    break;
+                case 1:
+                    setColorLEDScaled(idx, onColorBlue, brightnessDivisor);
+                    break;
+                case 2:
+                    setColorLEDScaled(idx, cyanColor, brightnessDivisor);
+                    break;
+                case 3:
+                    setColorLEDScaled(idx, solidColorRed, brightnessDivisor);
+                    break;
+            }
+        }
+    }
+
+    // Draw pointer ON TOP visually (only effect led_array), doesn't touch
+    set_color(currentposition, pointerColor);
+
+    // Print the emulator screen
+    WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
+}
 
 void renderGameRounds(void) {
     for (int8_t col = 4; col >= 0; col--) {
@@ -56,7 +186,7 @@ void handleGameRounds(bool answerCorrect, uint8_t roundIndex) {
                     currentGame = BINARY_GAME_CONTINUE;
                 }
                 else if (currentPage == ADDITION_GAME) {
-                    currentGame = ADDITION_GAME_CONTINUE;
+                    currentAddGame = ADDITION_GAME_CONTINUE;
                 }
                 setColorLEDScaled(roundIndex, orangeColor, brightnessDivisor);
                 printf("I got correct answer the 1st time in round %d.\n", roundIndex);
@@ -84,7 +214,7 @@ void handleGameRounds(bool answerCorrect, uint8_t roundIndex) {
                     currentGame = BINARY_GAME_CONTINUE;
                 }
                 else if (currentPage == ADDITION_GAME) {
-                    currentGame = ADDITION_GAME_CONTINUE;
+                    currentAddGame = ADDITION_GAME_CONTINUE;
                 }
                 break;
             case false:

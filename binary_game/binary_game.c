@@ -40,7 +40,7 @@ void initBinaryGame(void) {
 
     // The game will keep running until user get the answer correct, unless
     // they wish to stop the game
-    while (!stopPlaying && currentPage == BINARY_GAME) {
+    while (!stopPlaying) {
 
         // Activate keyboard I, J, K, L press input
         checkMoveButton();
@@ -91,7 +91,7 @@ void initBinaryGame(void) {
         }
 
         // Only works after user move the pointer one by one
-        if ((currentGame == BINARY_GAME_IDLE) && buttonPressed == 1) {
+        if ((currentGame == BINARY_GAME_IDLE) && (!stopPlaying) && buttonPressed == 1) {
             // Render normally
             renderBinaryGame(randomNumber);
             // printf("currentGame is %d \n", currentGame);

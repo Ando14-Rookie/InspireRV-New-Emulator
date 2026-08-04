@@ -48,7 +48,7 @@ void initAdditionGame(void) {
         overflowOccur += 1;
         printf("Question at round %d will cause overflow.\n", currentRound);
     }
-    
+
     // Make all LED off first in `led_array`
     fill_color(offColor);
 
@@ -57,7 +57,7 @@ void initAdditionGame(void) {
 
     // The game will keep running until user get the answer correct, unless
     // they wish to stop the game
-    while (!stopPlaying && currentPage == ADDITION_GAME) {
+    while (!stopPlaying) {
         // Activate keyboard I, J, K, L press input
         checkMoveButton();
 
@@ -103,7 +103,6 @@ void initAdditionGame(void) {
                 // Stop playing and go back to the previous page, namely
                 // `PAINTING_SPACE`
                 currentPage = prevPageState;
-                currentAddGame = ADDITION_GAME_IDLE;
                 stopPlaying = true;
             }
         }
@@ -152,8 +151,13 @@ void initAdditionGame(void) {
                 currentRound += 1;
                 currentAddGame = ADDITION_GAME_IDLE;
 
+                // TODO NEXT: CHECK IF THE HARDWARE CODE WORKS
+                // ENSURE TO INTEGRATE BOTH BINARYGAME AND ADDITION GAME TOGETHER
+
+                // Check if next round questions from Round 1 to 4 will cause overflow or not
+                // Round 0 has been handled in the beginning
                 if(currentRound < 5){
-                    // Check if next round questions will cause overflow or not
+                    
                     if(numberA + numberB > 15){
                         overflowOccur += 1;
                         printf("Question at round %d will cause overflow.\n", currentRound);
@@ -184,8 +188,10 @@ void initAdditionGame(void) {
         roundEntered[i] = 0;
     }
 
-    // Reset the game state (2nd time)
+    // Reset the game state
     currentAddGame = ADDITION_GAME_IDLE;
+    // Reset the overflow counter
+    overflowOccur = 0;
 
     // As soon as the function stop, render back the real saved canvas
     for (int i = 0; i < NUM_LEDS; i++) {
@@ -208,6 +214,10 @@ void initAdditionGame(void) {
  * @param questionB The 4-bits binary question 2
  **/
 static inline void handleScenario(uint8_t row, uint8_t idx, uint8_t questionA, uint8_t questionB) {
+    #ifdef DEBUG_VERBOSE
+    printf("handleScenario called with row=%d idx=%d\n", row, idx);
+    #endif
+    
     // Handle User Input by changing to selected
     // Only works for user input
     if (row == 3 && idx >= 1 && idx <= 5) {
@@ -308,19 +318,19 @@ static inline void renderQuestion(uint8_t questionA, uint8_t questionB) {
     // Decorative overlay spots, per row
     static const uint8_t row7Spots[] = {1, 2, 3, 4, 5, 6};
     for (int i = 0; i < 6; i++) {
-        setColorLEDScaled(7 * 8 + row7Spots[i], greyColor, brightnessDivisor);
+        setColorLEDScaled(7 * 8 + row7Spots[i], magentaColor, brightnessDivisor);
     }
 
-    setColorLEDScaled(6 * 8 + 6, greyColor, brightnessDivisor);
-    setColorLEDScaled(6 * 8 + 1, greyColor, brightnessDivisor);
+    setColorLEDScaled(6 * 8 + 6, magentaColor, brightnessDivisor);
+    setColorLEDScaled(6 * 8 + 1, magentaColor, brightnessDivisor);
 
-    setColorLEDScaled(5 * 8 + 6, greyColor, brightnessDivisor);
+    setColorLEDScaled(5 * 8 + 6, magentaColor, brightnessDivisor);
     setColorLEDScaled(5 * 8 + 1, onColorBlue, brightnessDivisor);
 
-    setColorLEDScaled(4 * 8 + 6, greyColor, brightnessDivisor);
-    setColorLEDScaled(4 * 8 + 5, greyColor, brightnessDivisor);
-    setColorLEDScaled(4 * 8 + 4, greyColor, brightnessDivisor);
-    setColorLEDScaled(4 * 8 + 3, greyColor, brightnessDivisor);
+    setColorLEDScaled(4 * 8 + 6, magentaColor, brightnessDivisor);
+    setColorLEDScaled(4 * 8 + 5, magentaColor, brightnessDivisor);
+    setColorLEDScaled(4 * 8 + 4, magentaColor, brightnessDivisor);
+    setColorLEDScaled(4 * 8 + 3, magentaColor, brightnessDivisor);
 
     for (int col = 0; col <= 2; col++) {
         setColorLEDScaled(4 * 8 + col, onColorBlue, brightnessDivisor);

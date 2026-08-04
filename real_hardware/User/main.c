@@ -1,6 +1,7 @@
 #include "main.h"
 
 int main(void) {
+
     SystemInit();
     ADC_init();
     clear();
@@ -933,7 +934,18 @@ void painting_routine(void) {
                 colorPaletteSelection(&foreground);
             }
             else if (JOY_5_pressed()) {
-                renderBinaryGameHW(brightness_divisor);
+                chooseGameMode(brightness_divisor);
+                Delay_Ms(200);
+                switch(playGameMode){
+                    case ADDITION_GAME:
+                        initAdditionGameHW(brightness_divisor);
+                        break;
+                    case BINARY_GAME:
+                        initBinaryGameHW(brightness_divisor);
+                        break;
+                }
+                // Reset the value
+                playGameMode = CHOOSE_GAME;
             }
             else if (JOY_6_pressed()) {
                 colorPaletteSelection(&background);

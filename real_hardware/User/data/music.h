@@ -4,6 +4,9 @@
  */
 // #define DEBUG_SOUND_PRINTF
 #include "../ch32v003fun/ch32v003fun.h"
+#include "./colors.h"
+#include "./buttons.h"
+#include "../hardware_binary_game/binary_game.h"
 
 void JOY_sound(uint16_t freq, uint16_t dur);
 
@@ -145,4 +148,21 @@ extern const int tempo;
 extern const int wholenote;
 
 int convertDuration(int duration);
+
+
+/**
+ * @brief Create short visual to show if user answer is correct or false
+ * @param notes List of notes to use
+ * @param duration How long should each note/blinking behaviour last
+ * @param len How many times should it loops
+ * @param color What color should be used for the blinking
+ **/
+void playMelodyWithFlashHW(
+    const uint16_t * notes, const uint8_t * durations, uint8_t len, color_t color);
+
+/// @brief Play the correct visual
+void flashCorrect(void);
+
+/// @brief Play the wrong visual
+void flashWrong(void);
 

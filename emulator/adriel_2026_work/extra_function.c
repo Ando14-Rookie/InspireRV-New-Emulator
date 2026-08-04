@@ -82,13 +82,15 @@ void handleButtonFunction(void) {
             printf("Now page state is %d\n", currentPage);
         }
         if (BTN_JUST_PRESSED(BTN_5)) {
-            printf("You selected 'BINARY GAME'.\n");
+            printf("You selected 'CHOOSE GAME PLAY'.\n");
             // Remember previous page: PAINTING_SPACE
             prevPageState = currentPage;
             // TO DO: Add function to render and handle user choosing which game to play
-            currentPage = ADDITION_GAME;
+            currentPage = CHOOSE_GAME_CONTROL;
             // Will print the page ID: 14
             printf("Now page state is %d\n", currentPage);
+            // Let user choose which game to play, either binary game or addition game
+            chooseGameMode();
         }
         if (BTN_JUST_PRESSED(BTN_6)) {
             printf("You selected 'COLOR FOR BACKGROUND'.\n");
@@ -212,12 +214,13 @@ void handleButtonFunction(void) {
         renderBrightnessSelectScreen();
     }
 
-    if(currentPage == BINARY_GAME){
+    if(currentPage == CHOOSE_GAME_CONTROL && playGameMode == BINARY_GAME){
+        printf("User has chosen `BINARY_GAME`. \n");
         initBinaryGame();
     }
 
-    if(currentPage == ADDITION_GAME){
-        // initBinaryGame();
+    if(currentPage == CHOOSE_GAME_CONTROL && playGameMode == ADDITION_GAME){
+        printf("User has chosen `ADDITION_GAME`. \n");
         initAdditionGame();
     }
 

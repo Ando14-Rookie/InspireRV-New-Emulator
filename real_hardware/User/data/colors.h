@@ -24,11 +24,13 @@ extern const color_t blueColor;
 extern const color_t redColor;
 extern const color_t greenColor;
 extern const color_t yellowColor;
+extern const color_t greyColor;
 extern const color_t orangeColor;
 extern const color_t lightOrangeColor;
 extern const color_t purpleColor;
 extern const color_t magentaColor;
 extern const color_t whiteColor;
+extern const color_t cyanColor;
 extern const color_t offColor;
 
 // clang-format on

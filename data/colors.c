@@ -12,6 +12,7 @@ const color_t lightOrangeColor = {255, 230, 190};
 const color_t greyColor = {235, 235, 235};
 const color_t pointerColor = {255, 188, 100}; // Orange
 const color_t magentaColor = {255, 15, 245}; // Magenta
+const color_t cyanColor = {15, 255, 245}; // Cyan
 const color_t solidColorRed = {255, 0, 0}; // Solid Red
 const color_t lightColorRed = {255, 200, 200};  // Light Red
 const color_t whiteColor = {255, 255, 255};

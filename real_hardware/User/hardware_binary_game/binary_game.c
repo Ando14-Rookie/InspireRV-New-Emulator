@@ -6,13 +6,9 @@ static const uint8_t slotLogoHW[16][5];
 static uint32_t nextRandom;
 
 // Function prototype declaration
-static void seedRandomFromHW(void);
-static uint16_t getRandom0to15(void);
 static void displayBinaryQuestionHW(uint8_t randomQuestion, uint8_t brightnessDivisor);
 static void renderUserInput(uint8_t brightnessDivisor);
 static bool checkUserInputCol(uint8_t randomQuestion, uint8_t rowUser[8]);
-static void flashCorrect(void);
-static void flashWrong(void);
 
 // Create canvas for random selection number
 static const uint8_t slotLogoHW[16][5] = {
@@ -43,7 +39,7 @@ static int8_t currentRound; // Ranges from 1 to 5 (ideally 0 to 4)
 // By default, game state is BINARY_GAME_IDLE
 GameState currentGame;
 
-void renderBinaryGameHW(uint8_t brightnessDivisor) {
+void initBinaryGameHW(uint8_t brightnessDivisor) {
     // Store which button is being pressed
     int8_t button = noButtonPressed;
     // Determine to continue the loop or not
@@ -53,13 +49,13 @@ void renderBinaryGameHW(uint8_t brightnessDivisor) {
     // Ensure that the graph result is only rendered once
     bool graphRendered = false;
     // Get random seed
-    seedRandomFromHW();
+    nextRandom = seedRandomFromHW(nextRandom);
     // In the beginning it starts at round 1 (ideally 0)
     currentRound = 0;
     // By default, game state is BINARY_GAME_IDLE
     currentGame = BINARY_GAME_IDLE;
     // Randomize number and get the value from 0 to 15
-    uint8_t questionIndex = getRandom0to15();
+    uint8_t questionIndex = getRandom0to15(nextRandom);
 
     #ifdef DEBUG_VERBOSE
         printf("Question value is %d \n", questionIndex);
@@ -146,8 +142,8 @@ void renderBinaryGameHW(uint8_t brightnessDivisor) {
                     // printf("------------------------- \n");
 
                     // Get random seed
-                    seedRandomFromHW();
-                    questionIndex = getRandom0to15();
+                    nextRandom = seedRandomFromHW(nextRandom);
+                    questionIndex = getRandom0to15(nextRandom);
 
                     // Reset user input values
                     for (int i = 0; i <= 7; i++) {
@@ -162,9 +158,12 @@ void renderBinaryGameHW(uint8_t brightnessDivisor) {
                     // As soon as the round has gone through 5 times, immediately show the result graph
                     currentGame = (currentRound > 4) ? BINARY_GAME_GRAPH : BINARY_GAME_IDLE;
                 }
+
                 // Keep showing everytime user select/press something, unless quitting the
                 // game
-                displayBinaryQuestionHW(questionIndex, brightnessDivisor);
+                if(currentRound <= 4){
+                    displayBinaryQuestionHW(questionIndex, brightnessDivisor);
+                }
             }
             else if(currentRound <=4){
                 // Reset current game progress to default after whether go to next round or
@@ -203,19 +202,6 @@ void renderBinaryGameHW(uint8_t brightnessDivisor) {
         // Rerender canvas using real current data
         flushCanvas();
     }
-}
-
-static void seedRandomFromHW(void) {
-    // Use CH32V003's free-running timer, then XOR with ADC noise as entropy source
-    nextRandom = GPIO_analogRead(GPIO_Ain1_A1);
-    if (nextRandom == 0)
-        nextRandom = 1; // avoid degenerate all-zero state
-}
-
-static uint16_t getRandom0to15(void) {
-    // Extracts a 4-bit value from the middle-upper bits of the 32-bit state
-    nextRandom = nextRandom * 1103515245 + 12345;
-    return (nextRandom >> 16) & 0xF; // use upper bits, mask to 0-15
 }
 
 static void displayBinaryQuestionHW(uint8_t randomQuestion, uint8_t brightnessDivisor) {
@@ -320,52 +306,4 @@ static inline bool checkUserInputCol(uint8_t randomQuestion, uint8_t rowUser[8])
 
     // Compare if user input and binary question is the same or not
     return (v == randomQuestion);
-}
-
-/**
- * @brief Create short visual to show if user answer is correct or false
- * @param notes List of notes to use
- * @param duration How long should each note/blinking behaviour last
- * @param len How many times should it loops
- * @param color What color should be used for the blinking
- **/
-void playMelodyWithFlashHW(
-    const uint16_t * notes, const uint8_t * durations, uint8_t len, color_t color) {
-    // Clear the screen first
-    clear();
-
-    // Run the visual and audio
-    for (uint8_t i = 0; i < len; i++) {
-        // Fills Screen with Green/Red
-        fill_color(color);
-
-        // Prints the emulator screen
-        WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
-
-        // Plays note for its own duration (blocking or non-blocking, your driver's call)
-        JOY_sound(notes[i], durations[i]);
-
-        // Fills Screen with OFF LED between notes
-        fill_color((color_t){0, 0, 0});
-
-        // Prints the emulator screen again
-        WS2812BSimpleSend(LED_PINS, (uint8_t *)led_array, NUM_LEDS * 3);
-
-        // Brief gap so blinks look distinct, not one continuous glow
-        Delay_Ms(5);
-    }
-}
-
-/// @brief Play the correct visual
-static void flashCorrect(void) {
-    static const uint16_t notes[] = {NOTE_C4, NOTE_E4, NOTE_G4, NOTE_C5};
-    static const uint8_t durations[] = {150, 150, 150, 200};
-    playMelodyWithFlashHW(notes, durations, 4, greenColor);
-}
-
-/// @brief Play the wrong visual
-static void flashWrong(void) {
-    static const uint16_t notes[] = {NOTE_E4, NOTE_C4};
-    static const uint8_t durations[] = {200, 250};
-    playMelodyWithFlashHW(notes, durations, 2, redColor);
 }
