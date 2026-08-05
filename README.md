@@ -1,6 +1,6 @@
 # InspireRV + CH32V003
 
-InspireRV is a 8x8 LED matrix board that uses CH32V003 microcontroller, primarily used by students to learn more about binary numbers, simple programming or just to draw anything.This repository contains the emulator and hardware program for InspireRV project. 
+InspireRV is a 8x8 LED matrix board that uses CH32V003 microcontroller, primarily used by students to learn more about binary numbers, simple programming or just to draw anything.This repository contains the `emulator` and `hardware program` for InspireRV project. 
 
 > Emulator currently only works on WindowOS.
 
@@ -90,9 +90,14 @@ Front View|Back View
   * Support development of basic embedded system software on Windows/MacOS without requiring physical hardware.
   * Aims to achieve function compatibility with the `ch32v003fun` library.
     * `adriel's_2026_work`: Handles key press event for WindowsOS, MacOs and InspireRV. It also contains essential functions needed in **new_emulator_system**.
-      * *system_window_mac* and *system_window* is not used for emulator if you want to run the program in Windows 
+      * *system_window_mac* and *system_window* is not used for emulator if you want to run the program in WinOS or MacOS. 
     * `emulator_driver`
       * This folder contains the main function that handles each key press, specifically for `button 1 to 9` stored in **extra_function.c**
+  * `ws2812b_simple.c` : aimed to render the 8x8 LED matrix in emulator, similar to how the program render the LED in the real InspireRV.
+
+* `emulator-screen`
+  * `(brightness_control.c)` : LED brightness control function that occurs when you press **button 2** in either PAINTING_SPACE or CODING_SPACE page is stored here.
+  * `(led_matrix_screen.c)` : When emulator start, this is the function that is used to handle the whole emulator program logic, movement and changes. This is only called once in `switch_page.c`. 
 
 * `misc (UNUSED)`
   * This file is derived from `InspireMatrix` old project. And, the file contained here is not used at all.
@@ -101,8 +106,9 @@ Front View|Back View
 * `new_emulator_system`
   * **What is Emulator?**
     * A piece of software (or hardware) that allows one device to act exactly like another.
-  * Make emulator in VS code's terminal that represents the 8x8 LED matrix in InspireRV.
-  * `Makefile` logic that starts and executes the emulatror program is stored in this folder.
+  * `switch_page.c` is the file to execute the emulator in the terminal.
+  * The main emulator `Makefile` logic that starts and executes the emulator program is stored in this folder. This is the only Makefile you have to care when compiling multiple C and header files for emulator. 
+    * Compiled C files for emulator are converted into object files and stored into `myObjects` folder.
 
 * `coding_space`
   * This folder contains multiple files that handle 2 main things related to Coding Space of InspireRV:
@@ -124,6 +130,11 @@ Front View|Back View
 * `image`
   * This folder contains a bunch of pictures used for `README.md` for documentation purpose.
 
+* `real_hardware`
+  * This folder contains all the functions, logics, Makefile that compile and flash the programs into InspireRV.
+  * This folder contain the program for InspireRV and InspireRobot, but they are not currently integrated together because the chip memory space is not enough.
+  * `main.c` : InspireRV hardware logic/code is stored here.
+  * `hardware_binary_game` : binary game and addition game code are stored here. 
 
 ## What to Setup Beforehand
 
@@ -136,13 +147,15 @@ Front View|Back View
     ![alt text](image/image-8.png)
     *  Turn ✔️ the `List All Devices` in Options.
     * Ensure to choose `WCH-Link(Interface 0)` & `WinUSB` as the driver to be switched..
+  * This is `optional` because you can  flash program by WCH-LinkUtility. The reason why wlink is used here because I believe it's more easier for developer to flash program via VS Code.
 
 * [wlink](https://github.com/ch32-rs/wlink)
   * An open-source command line tool for flashing firmware to your CH32V003 board via the WCH-LinkE. This is what your `make flash` target calls to automatically `write app.bin` to the chip, no GUI required.
+  * This is `optional` because you can  flash program by WCH-LinkUtility. The reason why wlink is used here because I believe it's more easier for developer to flash program via VS Code.
 
 * [WCH-LinkUtility](https://www.wch.cn/downloads/WCH-LinkUtility_ZIP.html)
   *  The official GUI flashing tool from WCH. Useful for one-off manual flashing, reading chip info, or updating the WCH-LinkE firmware. Not required if you are using `wlink` for automated `make flash`, but good to have as a backup when something goes wrong.
-    ![alt text](image\image-10.png)
+    ![alt text](image/image-10.png)
 
 ## How to compile 
 
@@ -158,7 +171,7 @@ Two options are available for compilation:
   * Builds only the emulator in new_emulator_system/. Use this when you want to test the program on your computer instead of real hardware.
 
 * `make run_emu`
-  * Builds the emulator first as prequisite (check if *make emu* has been run or not). Then, it runs *./new_emulator_system/switch_page*.
+  * Builds the emulator first as prequisite (check if *make emu* has been run or not). Then, it runs `./new_emulator_system/switch_page.c`.
 
 * `make flash`
   * Builds the firmware first. Then, flash the firmware in `app.bin` to InspireRV.
@@ -181,20 +194,20 @@ Ensure that the **environment** used in terminal is `MSYS2 MinGW64`, otherwise t
     
   * Step 2:
 
-    ![alt text](image\image-3.png)
+    ![alt text](image/image-3.png)
     * Ensure the working LED mode is Red which means RISCV mode.
 
   * Step 3:
 
     Side Left View|Side Right View
     :--------:|--------:
-    ![alt text](image\image-5.png)|![alt text](image\image-6.png)
+    ![alt text](image/image-5.png)|![alt text](image/image-6.png)
     * Connect this way.
 
   * Step 4:   
     * Go back to VS code, and make sure you are in project root path.
     * Setup `Zadig` everytime you want to flash via VS Code. Another way to flash is actually to do it manually via WCHLinkE software.
-      ![alt text](image\image-7.png)
+      ![alt text](image/image-7.png)
     * Type `make flash` or `make auto` using the **MSYS2 MinGW64** compiler (currently used compiler in this project).
   
   * ### Method 2: By WCH-LinkUtilityE
@@ -203,7 +216,7 @@ Ensure that the **environment** used in terminal is `MSYS2 MinGW64`, otherwise t
 ## Typical Error
   * **Undetected USB Device**
     * Solution: ensure that the WCH-LinkRV has been updated in `Windows Search>Device Manager Manager>USB devices/USB controller managers`. If it has been updated, the **interface** dropdown list should now include `WCH-LinkRV`
-        ![alt text](image\image-9.png)
+        ![alt text](image/image-9.png)
 
   * **USB error: incompatible driver is installed for this interface**
     * Solution: reinstall driver with `WCH-LinkRV (Interface 0) --> WinUSB` in the Zadig software.
