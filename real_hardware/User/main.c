@@ -906,7 +906,7 @@ void painting_routine(void) {
                 #ifdef DEBUG_VERBOSE
                 printf("Enter paint loading screen!\n");
                 #endif
-
+                printf("Enter paint loading screen!\n");
                 choose_load_page(rv_paint);
                 Delay_Ms(1000);
 
@@ -916,7 +916,7 @@ void painting_routine(void) {
             }
             else if (JOY_2_pressed()) {
                 // save paint
-                //printf("Enter Brightness mode\n");
+                printf("Enter Brightness mode\n");
                 choose_led_brightness();
                  Delay_Ms(1000);
                 // printf("Exit Brightness mode\n");
@@ -931,9 +931,11 @@ void painting_routine(void) {
                 //break;
             }
             else if (JOY_4_pressed()) {
+                printf("Select foreground color...\n");
                 colorPaletteSelection(&foreground);
             }
             else if (JOY_5_pressed()) {
+                printf("Play game...\n");
                 chooseGameMode(brightness_divisor);
                 Delay_Ms(200);
                 switch(playGameMode){
@@ -948,6 +950,7 @@ void painting_routine(void) {
                 playGameMode = CHOOSE_GAME;
             }
             else if (JOY_6_pressed()) {
+                printf("Select background color...\n");
                 colorPaletteSelection(&background);
             }
 
@@ -959,6 +962,7 @@ void painting_routine(void) {
                 break;
             }
             else if (JOY_8_pressed()) {
+                printf("Select color and do bucket fill...\n");
                 bucketFill();
                 /*for (int i = 0; i < NUM_LEDS; i++) {
                    canvas[i].layer = CLEARROUND_LAYER;

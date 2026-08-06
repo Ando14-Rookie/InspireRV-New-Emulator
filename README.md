@@ -1,14 +1,24 @@
-# InspireRV + CH32V003
+# InspireRV & InspireRV-Computer
+
+## InspireRV
+
+Front View|Back View
+:--------:|--------:
+![alt text](image/image.png)|![alt text](image/image-1.png)
 
 InspireRV is a 8x8 LED matrix board that uses CH32V003 microcontroller, primarily used by students to learn more about binary numbers, simple programming or just to draw anything.This repository contains the `emulator` and `hardware program` for InspireRV project. 
 
 > Emulator currently only works on WindowOS.
 
-## New Hardware (InspireRV):
+## InspireRV-Computer
 
 Front View|Back View
 :--------:|--------:
 ![alt text](image/image.png)|![alt text](image/image-1.png)
+
+InspireRV is a 8x8 LED matrix board that uses CH32V003 microcontroller, primarily used by students to learn more about binary numbers, simple programming or just to draw anything.This repository contains the `emulator` and `hardware program` for InspireRV project. 
+
+> Emulator currently only works on WindowOS.
 
 ## Project Structure
 
@@ -135,6 +145,94 @@ Front View|Back View
   * This folder contain the program for InspireRV and InspireRobot, but they are not currently integrated together because the chip memory space is not enough.
   * `main.c` : InspireRV hardware logic/code is stored here.
   * `hardware_binary_game` : binary game and addition game code are stored here. 
+
+## Typical Buttons ADC Value for InspireRV and InspireRV-Computer
+
+
+**InspireRV** column with the reference board's actual pin/signal, and the **InspireRV-Computer** column with what you measure on the custom board.
+
+## LED Chain (WS2812, Index 0–63)
+
+| LED Index | InspireRV | InspireRV-Computer |
+| --- | --- | --- |
+| LED 0  |129|Not Working|
+| LED 1  |140|Not Working|
+| LED 2  |150|Not Working|
+| LED 3  | | |
+| LED 4  | | |
+| LED 5  | | |
+| LED 6  | | |
+| LED 7  | | |
+| LED 8  |213|Not Working|
+| LED 9  | | |
+| LED 10 | | |
+| LED 11 | | |
+| LED 12 | | |
+| LED 13 | | |
+| LED 14 | | |
+| LED 15 | | |
+| LED 16 | | |
+| LED 17 | | |
+| LED 18 | | |
+| LED 19 | | |
+| LED 20 | | |
+| LED 21 | | |
+| LED 22 | | |
+| LED 23 | | |
+| LED 24 |454|Not Working|
+| LED 25 | | |
+| LED 26 | | |
+| LED 27 | | |
+| LED 28 | | |
+| LED 29 | | |
+| LED 30 | | |
+| LED 31 | | |
+| LED 32 |129|130|
+| LED 33 | | |
+| LED 34 | | |
+| LED 35 | | |
+| LED 36 | | |
+| LED 37 | | |
+| LED 38 | | |
+| LED 39 |202|204|
+| LED 40 |213|214|
+| LED 41 | | |
+| LED 42 | | |
+| LED 43 | | |
+| LED 44 |259|259|
+| LED 45 | | |
+| LED 46 | | |
+| LED 47 | | |
+| LED 48 |310|311|
+| LED 49 | | |
+| LED 50 | | |
+| LED 51 || |
+| LED 52 | | |
+| LED 53 |391|391|
+| LED 54 | | |
+| LED 55 | | |
+| LED 56 |453|454|
+| LED 57 | | |
+| LED 58 | | |
+| LED 59 | | |
+| LED 60 | | |
+| LED 61 |600|601|
+| LED 62 |640|639|
+| LED 63 |683|683|
+
+## Special Buttons (JOY1–JOY9)
+
+| LED Index | InspireRV | InspireRV-Computer |
+| --- | --- | --- |
+| Button 1 |683|686|
+| Button 2 |619|437|
+| Button 3 |564|318|
+| Button 4 |514|244|
+| Button 5 |468|194|
+| Button 6 |427|150|
+| Button 7 |389|150|
+| Button 8 |352|112|
+| Button 9 |320|66|
 
 ## What to Setup Beforehand
 

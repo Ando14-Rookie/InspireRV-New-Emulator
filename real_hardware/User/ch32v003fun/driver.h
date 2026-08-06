@@ -100,7 +100,11 @@ typedef enum {
 
 // This was changed to "static inline .." to prevent multiple definiton error
 static JOY_Button JOY_check_button(uint16_t adc_value) {
-     //printf("Special ADC: %d\n", adc_value);
+    // DEBUG; ADC range between 20 and 30 is a special value that indicates the ADC read was not valid, so we can ignore it    
+    if(adc_value > 45){
+        printf("Special 9 buttons ADC: %d\n", adc_value);
+    }
+    
     if (abs(adc_value - JOY_2) <= SPECIAL_BUTTON_DEVIATION)
         return JOY_UP;
     else if (abs(adc_value - JOY_8) <= SPECIAL_BUTTON_DEVIATION)
@@ -177,7 +181,7 @@ static int8_t matrix_pressed_two(void) {
     const int8_t samples = 5;
     uint16_t adc = multiple_ADC_reads(upper_half_ADC_channel, samples);
     if(adc > 60){
-        printf("upper ADC: %d\n", adc);
+        printf("upper ADC test: %d\n", adc);
     }
 
     #define UPPER_HALF_BUTTONS_START 32
@@ -203,7 +207,7 @@ static int8_t matrix_pressed_two(void) {
     // end non linear
     adc = multiple_ADC_reads(lower_half_ADC_channel, samples);
     if(adc > 60){
-        printf("lower ADC: %d\n", adc);
+        printf("lower ADC test: %d\n", adc);
     }
     #define LOWER_HALF_BUTTONS 32
     for (int8_t i = LOWER_HALF_BUTTONS; i < NUM_BUTTONS; i++) {
