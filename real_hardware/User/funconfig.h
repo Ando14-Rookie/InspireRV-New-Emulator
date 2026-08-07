@@ -11,6 +11,7 @@
 
 #define FUNCONF_SYSTICK_USE_HCLK 1
 #define INTERNAL_INSPIRE_MATRIX 1
+#undef INSPIRE_RV 1
 
 /** 
  * @brief Re-renders every LED on the physical strip based on the current contents 

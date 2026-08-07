@@ -8,7 +8,13 @@ Front View|Back View
 
 InspireRV is a 8x8 LED matrix board that uses CH32V003 microcontroller, primarily used by students to learn more about binary numbers, simple programming or just to draw anything.This repository contains the `emulator` and `hardware program` for InspireRV project. 
 
+### Extra Note
+> Refer to this branch to check the `most updated InspireRV program`.
+
 > Emulator currently only works on WindowOS.
+
+> This branch doesn't contain the robot_car function, u have to go to `  KEERTHANA'S_SUMMER2026_WORK` branch
+
 
 ## InspireRV-Computer
 
@@ -18,8 +24,6 @@ Front View|Back View
 
 InspireRV is a 8x8 LED matrix board that uses CH32V003 microcontroller, primarily used by students to learn more about binary numbers, simple programming or just to draw anything.This repository contains the `emulator` and `hardware program` for InspireRV project. 
 
-> Emulator currently only works on WindowOS.
-
 ## Project Structure
 
 * `.github`:
@@ -27,13 +31,89 @@ InspireRV is a 8x8 LED matrix board that uses CH32V003 microcontroller, primaril
   * `Doxyfile`: Doxygen configuration.
 
 * `.vscode`:
-  * `settings.json`: VSCode settings:
+  * `settings.json`: Ensure VSCode settings is like this roughly:
+    * Set the default compiler to `riscv-none-elf-gcc` for IDE integration.
+    * Make sure to also add the terminal `MSYS2 MinGW64"` because this program cannot be run in other terminal such as CMD, Powershell, Git Bash, etc.
 
-    ```json
-    "C_Cpp.default.compilerPath": "riscv-none-elf-gcc",
+    ```
+      {
+        "C_Cpp.default.compilerPath": "riscv-none-elf-gcc",
+        "files.associations": {
+            "Doxyfile": "doxyfile",
+            "stdlib.h": "c",
+            "driver.h": "c",
+            "image.h": "c",
+            "ch32v003fun.h": "c",
+            "color_utilities.h": "c",
+            "ws2812b_dma_spi_led_driver.h": "c",
+            "ws2812b_simple.h": "c",
+            "funconfig.h": "c",
+            "stdint.h": "c",
+            "unistd.h": "c",
+            "compare": "c",
+            "colors.h": "c",
+            "string.h": "c",
+            "stdio.h": "c",
+            "ch32v003_gpio_branchless.h": "c",
+            "music.h": "c",
+            "rv.h": "c",
+            "complex": "c",
+            "buttons.h": "c",
+            "codebook.h": "c",
+            "mel_mx.h": "c",
+            "twiddles_res13.h": "c",
+            "algorithm": "c",
+            "inttypes.h": "c",
+            "i2c_events.h": "c",
+            "riscv-disas.h": "c",
+            "ch32v003_i2c.h": "c",
+            "i2c_tx.h": "c",
+            "oled_min.h": "c",
+            "array": "c",
+            "string": "c",
+            "string_view": "c"
+        },
+        "terminal.integrated.profiles.windows": {
+            "MSYS2 MinGW64": {
+                "path": "C:\\msys64\\usr\\bin\\bash.exe",
+                "args": [
+                    "--login",
+                    "-i"
+                ],
+                "env": {
+                    "MSYSTEM": "MINGW64",
+                    "CHERE_INVOKING": "1",
+                    "MSYS2_PATH_TYPE": "inherit"
+                }
+            }
+        },
+    } 
     ```
 
-  To set the default compiler to `riscv-none-elf-gcc` for IDE integration.
+  * `c_cpp_properties.json`: Ensure VSCode settings is like this roughly:
+    * complierPath must be set to **gcc.exe** as this will be the essential tool to compile your program. 
+    
+    ```
+      {
+      "configurations": [
+          {
+              "name": "Win32",
+              "includePath": [
+                  "${workspaceFolder}/**"
+              ],
+              "defines": [
+                  "_DEBUG",
+                  "UNICODE",
+                  "_UNICODE"
+              ],
+              "cStandard": "c17",
+              "intelliSenseMode": "windows-gcc-x64",
+              "compilerPath": "C:/msys64/ucrt64/bin/gcc.exe"
+          }
+      ],
+      "version": 4
+    }
+    ```
 
 * `ch32v003_stt`
   * Simple spoken digit recognition.
@@ -146,7 +226,7 @@ InspireRV is a 8x8 LED matrix board that uses CH32V003 microcontroller, primaril
   * `main.c` : InspireRV hardware logic/code is stored here.
   * `hardware_binary_game` : binary game and addition game code are stored here. 
 
-## Typical Buttons ADC Value for InspireRV and InspireRV-Computer
+## Typical Buttons ADC Value for InspireRV and InspireRV-Computer (To Be Updated)
 
 
 **InspireRV** column with the reference board's actual pin/signal, and the **InspireRV-Computer** column with what you measure on the custom board.
@@ -322,6 +402,13 @@ Ensure that the **environment** used in terminal is `MSYS2 MinGW64`, otherwise t
   * **Error: invalid path 'nul' \n error: unable to add 'nul' to index**
     * This error occurs when you want to do `git add`.
     * Solution: manually delete the `nul` file or type this "rm nul" in the MSYS2 Mingw64 terminal.
+  
+  * **/bin/sh: line 1: riscv-none-elf-gcc: command not found**
+    * This error occurs because you didn't download the global version of the [riscv-none-elf-gcc](https://xpack-dev-tools.github.io/riscv-none-elf-gcc-xpack/docs/install/). You should choose the one here below, and download it in the global/window CMD, not in VS Code project's terminal.
+    ![alt text](image/image-11.png)
+
+
+
 
 ## Credits
 
