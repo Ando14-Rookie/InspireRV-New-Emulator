@@ -20,9 +20,11 @@ InspireRV is a 8x8 LED matrix board that uses CH32V003 microcontroller, primaril
 
 Front View|Back View
 :--------:|--------:
-![alt text](image/image.png)|![alt text](image/image-1.png)
+![alt text](image/image-12.png)|![alt text](image/image-13.png)
 
-InspireRV is a 8x8 LED matrix board that uses CH32V003 microcontroller, primarily used by students to learn more about binary numbers, simple programming or just to draw anything.This repository contains the `emulator` and `hardware program` for InspireRV project. 
+InspireRV-Computer is a 8x8 LED matrix board that uses CH32V003 microcontroller, primarily used by students to learn more about binary numbers, simple programming or just to draw anything.This repository contains the `emulator` and `hardware program`, similar like InspireRV project. 
+
+> The only main difference is that this InspireRV-Computer's 8x8 Matrix Board can be detached and connected using **male to female jumper wires**. Hence, enabling the 8x8 Matrix Board buttons to be pressed from a further distance.
 
 ## Project Structure
 
